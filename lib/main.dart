@@ -17,7 +17,7 @@ import 'package:zugclient/zug_utils.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   ZugUtils.getIniDefaults("mole.ini").then((defaults) {
-    SharedPreferences.getInstance().then((prefs) {
+    ZugUtils.getPrefs().then((prefs) {
       String domain = defaults["domain"] ?? "molechess.com";
       int port = int.parse(defaults["port"] ?? "5555");
       String endPoint = defaults["endpoint"] ?? "server";

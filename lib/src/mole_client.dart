@@ -1,5 +1,5 @@
-import 'dart:async';
 import 'dart:convert';
+import 'dart:async';
 import 'dart:math';
 import 'package:chess/chess.dart' as dc;
 import 'package:chessground/chessground.dart';
@@ -12,7 +12,6 @@ import 'package:mole_app/src/mole_dialogs.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:zugclient/dialogs.dart';
 import 'package:zugclient/oauth_client.dart';
-import 'package:zugclient/zug_app.dart';
 import 'package:zugclient/zug_client.dart';
 import 'package:zugclient/zug_fields.dart';
 import 'package:zugclient/zug_utils.dart';
@@ -73,9 +72,6 @@ class MoleClient extends ZugClient {
     areaName = "Mole Game";
     addFunctions({
       ServMsg.updateArea : handleGameUpdate,
-      ServMsg.joinArea : handleJoin,
-      ServMsg.partArea : handlePart,
-      ServMsg.startArea : handleStartGame,
       ServMsg.ip : handleIP,
       MoleServMsg.move : handleMove,
       //MoleServMsg.status : handleStatus,
@@ -327,9 +323,7 @@ class MoleClient extends ZugClient {
     }
   }
 
-  void handleStartGame(data) {
-    switchPage = PageType.main;
-  }
+
 
   void handleResult(data) { //TODO: figure out side better
     Area game = getOrCreateArea(data);
@@ -381,11 +375,13 @@ class MoleClient extends ZugClient {
     }
   }
 
+  @override
   void handleJoin(data) { //print("Joining");
+    super.handleJoin(data);
     handleGameUpdate(data);
-    switchArea(data[fieldTitle]);
   }
 
+  @override
   void handlePart(data) { //print("Parting");
     handleGameUpdate(data); //switchArea(null);
   }
