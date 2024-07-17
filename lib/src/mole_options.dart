@@ -92,8 +92,8 @@ class _MoleOptionsPageState extends State<MoleOptionsPage> {
                 }),
           ],
         ),
-        ZugUtils.checkRow(widget.client, this, "Sound", "sound", ZugClient.defaultSound,onFalse: () => widget.client.audio.stop()),
-        ZugUtils.checkRow(widget.client, this, "Streamer Mode", "streamer_mode", false),
+        ZugUtils.checkRow(widget.client,"Sound", "sound", ZugClient.defaultSound,() => setState((){}),onFalse: () => widget.client.audio.stop()),
+        ZugUtils.checkRow(widget.client,"Streamer Mode", "streamer_mode",false,() => setState((){})),
         //ZugUtils.checkRow(widget.client, this, "Movelist Hover Mode", "movelist_hover", MoleClient.defaultMoveListHover),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,

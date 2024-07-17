@@ -2,39 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mole_app/src/mole_client.dart';
 import 'package:zugclient/lobby_page.dart';
-import 'package:zugclient/zug_chat.dart';
 import 'package:zugclient/zug_client.dart';
 import 'package:zugclient/zug_fields.dart';
 import 'package:zugclient/zug_utils.dart';
 import "package:universal_html/html.dart" as html;
 import 'mole_fields.dart';
 
-class MoleLobbyPage extends StatelessWidget {
-
-  final MoleClient client;
-  final Color backgroundColor,foregroundColor;
-
-  const MoleLobbyPage(this.client,this.backgroundColor,this.foregroundColor,{super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = ZugUtils.getActualScreenHeight(context);
-    return Row(
-      children: [
-        GameLobbyPage(client,
-        backgroundImage: ZugUtils.getAssetImage("images/molefog.png"),
-        backgroundColor: backgroundColor,
-        foregroundColor: foregroundColor,
-        helpPage: "https://molechess.com/help/index.html"),
-      ZugChat(client, width: screenWidth * .34, height: screenHeight, serverName: "Lobby", defScope: MessageScope.server)
-      ],
-    );
-  }
-
-}
-
-class GameLobbyPage extends LobbyPage {
+class MoleLobbyPage extends LobbyPage {
 
   final Map<int,Color> colorMap = {
     -1 : Colors.grey,
@@ -42,13 +16,13 @@ class GameLobbyPage extends LobbyPage {
     1: Colors.white
   };
 
-  GameLobbyPage(super.client, {
+  MoleLobbyPage(super.client, {
     super.areaName ="Mole Game",
-    super.widthFactor = .66,
     super.backgroundImage,
     super.backgroundColor,
     super.foregroundColor,
     super.helpPage,
+    super.chatArea,
     super.key});
 
   @override

@@ -4,10 +4,11 @@ import 'package:mole_app/src/main_page.dart';
 import 'package:mole_app/src/mole_client.dart';
 import 'package:mole_app/src/mole_lobby.dart';
 import 'package:mole_app/src/mole_options.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zugclient/zug_app.dart';
 import 'package:logging/logging.dart';
+import 'package:zugclient/zug_chat.dart';
 import 'package:zugclient/zug_client.dart';
+import 'package:zugclient/zug_fields.dart';
 import 'package:zugclient/zug_utils.dart';
 
 //TODO: coordinates option
@@ -49,7 +50,17 @@ class MoleApp extends ZugApp {
 
   @override
   Widget createLobbyPage(client) {
-    return MoleLobbyPage(client,defaultColorScheme.background,defaultColorScheme.onBackground);
+    return MoleLobbyPage(
+      client,
+      backgroundImage: ZugUtils.getAssetImage("images/molefog.png"),
+      backgroundColor: defaultColorScheme.background,
+      foregroundColor: defaultColorScheme.onBackground,
+      helpPage: "https://molechess.com/help/index.html",
+      chatArea: ZugChat(client,
+          widthFactor: .33,
+          serverName: "Lobby",
+          defScope: MessageScope.server),
+    );
   }
 
   @override
