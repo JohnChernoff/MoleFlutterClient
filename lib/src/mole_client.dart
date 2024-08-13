@@ -300,7 +300,7 @@ class MoleClient extends ZugClient {
     Area game = getOrCreateArea(data);
     if (game is MoleGame && game == currentArea) {
       playClip("defect");
-      Dialogs.popup("${ZugUtils.getOccupantName(data)} defects!",
+      Dialogs.popup("${ZugUtils.getOccupantName(data[fieldPlayer])} defects!",
           imgFile: "defection.png");
     }
   }
@@ -309,7 +309,7 @@ class MoleClient extends ZugClient {
     Area game = getOrCreateArea(data);
     if (game is MoleGame && game == currentArea) {
       playClip("rampage");
-      Dialogs.popup("${ZugUtils.getOccupantName(data)} rampages!",
+      Dialogs.popup("${ZugUtils.getOccupantName(data[fieldPlayer])} rampages!",
           imgFile: "rampage.png");
     }
   }
@@ -340,7 +340,7 @@ class MoleClient extends ZugClient {
         PlayerColor.white => Image(image: ZugUtils.getAssetImage("images/mole_sprite_white.gif")),
       };
 
-      PlayerColor? side = game.getUserSide(user);
+      PlayerColor? side = game.getUserSide(userName);
       String track;
 
       if (winner == null) {
@@ -451,7 +451,7 @@ class MoleClient extends ZugClient {
   // sets game.orientation (if unset, flips based on getUserSide(user))
   void flipBoard() {
     MoleGame game = getCurrentGame();
-    game.orientation = (game.orientation ?? game.getUserSide(user)) == PlayerColor.white ? PlayerColor.black : PlayerColor.white;
+    game.orientation = (game.orientation ?? game.getUserSide(userName)) == PlayerColor.white ? PlayerColor.black : PlayerColor.white;
     notifyListeners();
   }
 

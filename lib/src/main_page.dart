@@ -69,7 +69,7 @@ class MainMolePageState extends State<MainMolePage> {
       ElevatedButton(
           style: getCommandButtonStyle(),
           onPressed: () {
-            widget.client.getPlayerHistory(widget.client.user);
+            widget.client.getPlayerHistory(widget.client.userName);
             widget.client.waitMap[MoleServMsg.history]?.future
                 .then((value) => setState(() {
                       page = MainPages.historyPage;

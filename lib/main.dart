@@ -86,7 +86,7 @@ class MoleHome extends ZugHome {
   @override
   Text getAppBarText(ZugClient client, {String? text, Color textColor = Colors.black}) {
     return super.getAppBarText(client,
-        text: client.isLoggedIn ? "${getAppInfo(client as MoleClient)}, user: ${client.user}, "
+        text: client.isLoggedIn ? "${getAppInfo(client as MoleClient)}, user: ${client.userName}, "
             "game: ${client.currentArea.title.isNotEmpty ? client.currentArea.title : 'none'}"
             : getAppInfo(client as MoleClient),
         textColor: client.selectedPage == PageType.main ? Colors.grey : Colors.black);

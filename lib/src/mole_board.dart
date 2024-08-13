@@ -185,7 +185,7 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
       pieceSet: widget.client.customSets[pieceSet].name.toLowerCase(),
       controller: widget.client.chessBoardController,
       enableUserMoves: hoverFEN == null,
-      boardOrientation: game.orientation ?? game.getUserSide(widget.client.user) ?? PlayerColor.white,
+      boardOrientation: game.orientation ?? game.getUserSide(widget.client.userName) ?? PlayerColor.white,
       size: boardSize,
       arrows: getArrows(historySnapshot),
       onMove: widget.client.sendMove,

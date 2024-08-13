@@ -83,7 +83,7 @@ class MoleLobbyPage extends LobbyPage {
   }
 
   @override
-  int compareGames(Area? a, Area? b) { //print("Area a: $a"); print("Area b: $a");
+  int compareAreas(Area? a, Area? b) { //print("Area a: $a"); print("Area b: $a");
     if (a == null || b == null) return 0;
     if (a is MoleGame && b is MoleGame) { //print(a.jsonData);
       Iterable<dynamic> players1 = a.occupantMap.values;
@@ -92,7 +92,7 @@ class MoleLobbyPage extends LobbyPage {
       int p2 = players2.length >= 6 ? 0 : players2.length;
       int c = -(p1.compareTo(p2));
       if (c == 0) {
-        return super.compareGames(a,b);
+        return super.compareAreas(a,b);
       } else {
         return c;
       }
@@ -133,7 +133,7 @@ class MoleLobbyPage extends LobbyPage {
       String uName = ZugUtils.getOccupantName(player);
       Color pColor = HexColor.fromHex(player[fieldChatColor]);
       rows.add(DataRow(cells: [
-        DataCell(Text(uName,textScaleFactor: 1.5, style : TextStyle(backgroundColor: Colors.black, color: pColor))),
+        DataCell(Text(uName,textScaler: const TextScaler.linear(1.5), style : TextStyle(backgroundColor: Colors.black, color: pColor))),
         DataCell(Container(
             color: colorMap[player["game_col"]],
             margin: const EdgeInsets.all(8),
