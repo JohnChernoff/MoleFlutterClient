@@ -71,17 +71,17 @@ class MoleClient extends ZugClient {
     clientName = "mole_client";
     areaName = "Mole Game";
     addFunctions({
+      //MoleServMsg.status : handleStatus,
+      //MoleServMsg.side : handleSide,
       ServMsg.updateArea : handleGameUpdate,
       ServMsg.ip : handleIP,
       MoleServMsg.move : handleMove,
-      //MoleServMsg.status : handleStatus,
       ServMsg.phase : handlePhase,
       MoleServMsg.role : handleRole,
       MoleServMsg.defection : handleDefection,
       MoleServMsg.rampage : handleRampage,
       MoleServMsg.moleBomb : handleMolebomb,
       MoleServMsg.voteList : handleVotelist,
-      //MoleServMsg.side : handleSide,
       MoleServMsg.top : handleTop,
       MoleServMsg.history : handlePlayerHistory,
       MoleServMsg.result : handleResult,
@@ -94,7 +94,6 @@ class MoleClient extends ZugClient {
     }
     //print(waitMap[MoleServMsg.history]);
     loadChessgroundPieceSets();
-
     //initFire().then((value) {  //_connect(); } );
   }
 

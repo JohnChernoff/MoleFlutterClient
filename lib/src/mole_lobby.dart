@@ -112,8 +112,7 @@ class MoleLobbyPage extends LobbyPage {
       const DataColumn(label: Text('Player')),
       const DataColumn(label: Text('Color')),
       const DataColumn(label: Text('Rating')),
-      const DataColumn(label: Text('Vote')),
-      const DataColumn(label: Text('Accuse')),
+      const DataColumn(label: Text('Accusing')),
       const DataColumn(label: Text('Kick')),
     ];
   }
@@ -129,7 +128,6 @@ class MoleLobbyPage extends LobbyPage {
     }
     players.sort((a, b) => a[MoleFields.moleFieldSide].compareTo(b[MoleFields.moleFieldSide]));
     for (dynamic player in players) { //print("Player: $player");
-      //dynamic uniqueName = { fieldName : player[fieldUser][fieldName], fieldAuthSource : player[fieldUser][fieldAuthSource]};
       String uName = ZugUtils.getOccupantName(player);
       Color pColor = HexColor.fromHex(player[fieldChatColor]);
       rows.add(DataRow(cells: [
@@ -140,7 +138,7 @@ class MoleLobbyPage extends LobbyPage {
         )),
         DataCell(Text(player["user"]["blitz"].toString())),
         DataCell(Text(player["votename"])),
-        DataCell(getIconButton(uName, Icons.where_to_vote,MoleClientMsg.voteoff,cg.title)),
+        //DataCell(getIconButton(uName, Icons.where_to_vote,MoleClientMsg.voteoff,cg.title)),
         DataCell(getIconButton(uName, player["kickable"] ? Icons.remove_circle_outline : Icons.not_interested,MoleClientMsg.kickoff,cg.title)),
       ]));
     }
