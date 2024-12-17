@@ -76,7 +76,7 @@ class _MoleOptionsPageState extends State<MoleOptionsPage> {
           children: [
             const Text("Board Style:  "),
             DropdownButton<String>(
-                value: widget.client.prefs?.getString("board_colors") ?? defaultBoardColorScheme,
+                value: widget.client.prefs?.getString("board_colors") ?? defaultBoardColorScheme.name,
                 items: List.generate(
                     BoardColor.values.length, (index) {
                   final schemeTxt =
@@ -87,7 +87,7 @@ class _MoleOptionsPageState extends State<MoleOptionsPage> {
                   );
                 }, growable: false),
                 onChanged: (value) {
-                  widget.client.prefs?.setString("board_colors", value ?? defaultBoardColorScheme);
+                  widget.client.prefs?.setString("board_colors", value ?? defaultBoardColorScheme.name);
                   setState(() { /* board colors changed */ });
                 }),
           ],

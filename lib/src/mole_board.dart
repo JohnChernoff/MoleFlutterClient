@@ -177,7 +177,7 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
 
   Widget getBoard(MoleGame game, double boardSize) {
     int pieceSet = widget.client.prefs?.getInt("piece_set") ?? defaultPieceSetIndex;
-    BoardColor boardColor = BoardColor.values.singleWhere((element) => element.name.toLowerCase() == widget.client.prefs?.getString("board_colors"),orElse: () => defaultBoardColor);
+    BoardColor boardColor = BoardColor.values.singleWhere((element) => element.name.toLowerCase() == widget.client.prefs?.getString("board_colors"),orElse: () => BoardColor.green);
     //final String fen = hoverFEN ?? game.fen; //print("Generating board: $fen");
     return ChessBoard(
       dragHighlightColor: Colors.orange,
@@ -189,6 +189,7 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
       size: boardSize,
       arrows: getArrows(historySnapshot),
       onMove: widget.client.sendMove,
+      blackPieceColor: Colors.white,
     );
   }
 

@@ -20,7 +20,8 @@ late final String? pushToken;
 const bool defaultStreamerMode = false;
 const bool defaultMoveListHover = false;
 const int defaultPieceSetIndex = 15;
-const String defaultBoardColorScheme = "blueish_gray";
+//const String defaultBoardColorScheme = "brown"; //blueish_gray";
+const BoardColor defaultBoardColorScheme = BoardColor.brown;
 
 class MoleFields {
   static final IMap<PieceKind,AssetImage> moleSet = Map<PieceKind,AssetImage>.unmodifiable({

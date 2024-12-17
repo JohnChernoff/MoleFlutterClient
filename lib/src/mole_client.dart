@@ -412,7 +412,7 @@ class MoleClient extends ZugClient {
     }
   }
 
-  void sendMove() {
+  void sendMove(String from, String to, String? prom) {
     dc.Move lastMove = chessBoardController.game.history.last.move;
     ZugClient.log.info("Sending move: ${lastMove.fromAlgebraic}${lastMove.toAlgebraic}");
     send(MoleServMsg.move,data: {

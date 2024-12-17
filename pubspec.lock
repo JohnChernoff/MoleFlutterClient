@@ -281,9 +281,11 @@ packages:
   flutter_chess_board:
     dependency: "direct main"
     description:
-      path: "C:/Users/jac107/IdeaProjects/flutter/3p/flutter_chess_board-master"
-      relative: false
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "97a2dc70168ba9ff0364e686bd2c81f3bb5626bb"
+      url: "https://github.com/JohnChernoff/flutter_chess_board"
+    source: git
     version: "1.0.1"
   flutter_lints:
     dependency: "direct dev"
@@ -293,13 +295,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.3"
-  flutter_oauth:
-    dependency: transitive
-    description:
-      path: "C:/Users/jac107/IdeaProjects/flutter/flutter_oauth"
-      relative: false
-    source: path
-    version: "0.0.1"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -902,21 +897,25 @@ packages:
   zug_net:
     dependency: transitive
     description:
-      path: "C:/Users/jac107/IdeaProjects/flutter/zug_net"
-      relative: false
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: f35a2293c5416677a258aef51a06b426714e83a7
+      url: "https://github.com/JohnChernoff/ZugNetFlutter"
+    source: git
     version: "0.0.1"
   zug_utils:
     dependency: "direct main"
     description:
-      path: "C:\\Users\\jac107\\IdeaProjects\\flutter\\zug_utils"
-      relative: false
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: "7bb4d0329e848753faf3520cd9e6f08053c23538"
+      url: "https://github.com/JohnChernoff/zug_utils"
+    source: git
     version: "0.0.1"
   zugclient:
     dependency: "direct main"
     description:
-      path: "C:/Users/jac107/IdeaProjects/flutter/zugclient"
+      path: "C:\\Users\\jac107\\IdeaProjects\\flutter\\zugclient"
       relative: false
     source: path
     version: "0.2.0"

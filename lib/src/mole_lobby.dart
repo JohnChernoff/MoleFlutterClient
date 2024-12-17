@@ -128,7 +128,7 @@ class MoleLobbyPage extends LobbyPage {
     }
     players.sort((a, b) => a[MoleFields.moleFieldSide].compareTo(b[MoleFields.moleFieldSide]));
     for (dynamic player in players) { //print("Player: $player");
-      UniqueName uName = UniqueName.fromData(player);
+      UniqueName uName = UniqueName.fromData(player[fieldUser]);
       Color pColor = HexColor.fromHex(player[fieldChatColor]);
       rows.add(DataRow(cells: [
         DataCell(Text(uName.name,textScaler: const TextScaler.linear(1.5), style : TextStyle(backgroundColor: Colors.black, color: pColor))),
