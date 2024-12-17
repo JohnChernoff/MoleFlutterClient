@@ -4,12 +4,13 @@ import 'package:mole_app/src/main_page.dart';
 import 'package:mole_app/src/mole_client.dart';
 import 'package:mole_app/src/mole_lobby.dart';
 import 'package:mole_app/src/mole_options.dart';
+import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_app.dart';
 import 'package:logging/logging.dart';
 import 'package:zugclient/zug_chat.dart';
 import 'package:zugclient/zug_client.dart';
 import 'package:zugclient/zug_fields.dart';
-import 'package:zugclient/zug_utils.dart';
+//import 'package:zugclient/zug_utils.dart';
 
 //TODO: coordinates option
 //autologin for lichess, etc. (use prefs)
@@ -38,6 +39,19 @@ class MoleApp extends ZugApp {
     super.key
   });
 
+  String _getAppInfo(MoleClient client) {
+    return "MoleClient Ver. ${client.packageInfo?.version ?? '?'}, Server Ver. ${client.serverVersion} ";
+  }
+
+  Color _getAppBarColor(BuildContext context, ZugClient client) {
+    return switch(client.selectedPage) {
+      PageType.main => Colors.black,
+      PageType.lobby => Colors.brown,
+      PageType.options => Colors.orange,
+      PageType.none => Colors.white,
+    };
+  }
+
   @override
   Widget createHomePage(ZugApp app) {
     return MoleHome(app: app);
@@ -53,8 +67,8 @@ class MoleApp extends ZugApp {
     return MoleLobbyPage(
       client,
       backgroundImage: ZugUtils.getAssetImage("images/molefog.png"),
-      backgroundColor: defaultColorScheme.background,
-      foregroundColor: defaultColorScheme.onBackground,
+      backgroundColor: defaultColorScheme.surface,
+      foregroundColor: defaultColorScheme.onSurface,
       helpPage: "https://molechess.com/help/index.html",
       chatArea: ZugChat(client,
           widthFactor: .33,
@@ -68,28 +82,16 @@ class MoleApp extends ZugApp {
     return MoleOptionsPage(client);
   }
 
-}
-
-class MoleHome extends ZugHome {
-  const MoleHome({super.key, required super.app});
-
   @override
-  Color getAppBarColor(BuildContext context, ZugClient client) {
-    return switch(client.selectedPage) {
-      PageType.main => Colors.black,
-      PageType.lobby => Colors.brown,
-      PageType.options => Colors.orange,
-      PageType.none => Colors.white,
-    };
-  }
-
-  @override
-  Text getAppBarText(ZugClient client, {String? text, Color textColor = Colors.black}) {
-    return super.getAppBarText(client,
-        text: client.isLoggedIn ? "${getAppInfo(client as MoleClient)}, user: ${client.userName}, "
-            "game: ${client.currentArea.title.isNotEmpty ? client.currentArea.title : 'none'}"
-            : getAppInfo(client as MoleClient),
-        textColor: client.selectedPage == PageType.main ? Colors.grey : Colors.black);
+  AppBar createAppBar(BuildContext context, ZugClient client, {Widget? txt, Color? color}) {
+    String txt = client.isLoggedIn
+        ? "${_getAppInfo(client as MoleClient)}, user: ${client.userName}, "
+        "game: ${client.currentArea.title.isNotEmpty ? client.currentArea.title : 'none'}"
+        : _getAppInfo(client as MoleClient);
+    return AppBar(
+        title: Text(txt),
+        foregroundColor: _getAppBarColor(context, client),
+        backgroundColor: client.selectedPage == PageType.main ? Colors.grey : Colors.black);
   }
 
   @override
@@ -100,8 +102,8 @@ class MoleHome extends ZugHome {
     );
   }
 
-  String getAppInfo(MoleClient client) {
-    return "MoleClient Ver. ${client.packageInfo?.version ?? '?'}, Server Ver. ${client.serverVersion} ";
-  }
+}
 
+class MoleHome extends ZugHome {
+  const MoleHome({super.key, required super.app});
 }

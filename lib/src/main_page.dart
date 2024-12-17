@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:zugclient/zug_utils.dart';
+import 'package:zug_utils/zug_utils.dart';
 import 'mole_board.dart';
 import 'mole_client.dart';
 import 'package:flutter/material.dart';
@@ -173,8 +173,8 @@ class MainMolePageState extends State<MainMolePage> {
 
   ButtonStyle getCommandButtonStyle() {
     return ButtonStyle(
-        backgroundColor: MaterialStateColor.resolveWith((states) => Colors.black),
-        foregroundColor: MaterialStateColor.resolveWith((states) => Colors.grey)
+        backgroundColor: WidgetStateColor.resolveWith((states) => Colors.black),
+        foregroundColor: WidgetStateColor.resolveWith((states) => Colors.grey)
     );
   }
 }

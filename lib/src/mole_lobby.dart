@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:mole_app/src/mole_client.dart';
+import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/lobby_page.dart';
 import 'package:zugclient/zug_client.dart';
 import 'package:zugclient/zug_fields.dart';
-import 'package:zugclient/zug_utils.dart';
 import "package:universal_html/html.dart" as html;
 import 'mole_fields.dart';
 
@@ -39,11 +39,11 @@ class MoleLobbyPage extends LobbyPage {
             child: DataTable(
                 dividerThickness: 2,
                 columnSpacing: 16,
-                dataRowColor: MaterialStateProperty.resolveWith((Set states) {
+                dataRowColor: WidgetStateProperty.resolveWith((Set states) {
                   return Colors.grey; //Theme.of(context).colorScheme.inversePrimary;
                 }),
                 headingRowColor:
-                    MaterialStateProperty.resolveWith((Set states) {
+                    WidgetStateProperty.resolveWith((Set states) {
                   return Colors.green; //Theme.of(context).colorScheme.onSecondary;
                 }),
                 //headingTextStyle: const TextStyle(color: Colors.yellowAccent),
@@ -128,10 +128,10 @@ class MoleLobbyPage extends LobbyPage {
     }
     players.sort((a, b) => a[MoleFields.moleFieldSide].compareTo(b[MoleFields.moleFieldSide]));
     for (dynamic player in players) { //print("Player: $player");
-      String uName = ZugUtils.getOccupantName(player);
+      UniqueName uName = UniqueName.fromData(player);
       Color pColor = HexColor.fromHex(player[fieldChatColor]);
       rows.add(DataRow(cells: [
-        DataCell(Text(uName,textScaler: const TextScaler.linear(1.5), style : TextStyle(backgroundColor: Colors.black, color: pColor))),
+        DataCell(Text(uName.name,textScaler: const TextScaler.linear(1.5), style : TextStyle(backgroundColor: Colors.black, color: pColor))),
         DataCell(Container(
             color: colorMap[player["game_col"]],
             margin: const EdgeInsets.all(8),
@@ -145,10 +145,10 @@ class MoleLobbyPage extends LobbyPage {
     return rows;
   }
 
-  IconButton getIconButton(dynamic targetUniqueName, IconData iconData, Enum action, String title) {
+  IconButton getIconButton(UniqueName targetUniqueName, IconData iconData, Enum action, String title) {
     return IconButton(
         onPressed: () {
-          client.send(action, data: { "player" : targetUniqueName, fieldTitle : title}); //TODO: deal with authSource
+          client.send(action, data: { "player" : targetUniqueName.toJSON(), fieldTitle : title}); //TODO: deal with authSource
         },
         icon: Icon(
           iconData,

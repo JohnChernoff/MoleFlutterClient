@@ -128,7 +128,7 @@ class _PGNViewer extends State<PGNViewer> {
           child: ListView(
             scrollDirection: Axis.vertical,
             children: [
-              Text(headers["Black"].toString() ?? "",
+              Text(headers["Black"]?.toString() ?? "",
                   overflow: TextOverflow.clip, style: textStyle),
               Board(
                 size: screenWidth / 4,
@@ -138,7 +138,7 @@ class _PGNViewer extends State<PGNViewer> {
                     fen: history[ply]["fen"],
                     shapes: history[ply]["arrows"]),
               ),
-              Text(headers["White"].toString() ?? "",
+              Text(headers["White"]?.toString() ?? "",
                   overflow: TextOverflow.clip, style: textStyle),
               Text(history[ply]["comment"],
                   overflow: TextOverflow.clip, style: textStyle),

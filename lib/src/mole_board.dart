@@ -5,11 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart' hide Color;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mole_app/src/mole_dialogs.dart';
-import 'package:zugclient/dialogs.dart';
+import 'package:zug_utils/zug_dialogs.dart';
+import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_chat.dart';
 import 'package:zugclient/zug_client.dart';
 import 'package:zugclient/zug_fields.dart';
-import 'package:zugclient/zug_utils.dart';
 import 'main_page.dart';
 import 'mole_client.dart';
 import 'mole_clock.dart';
@@ -289,8 +289,8 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
 
   ButtonStyle getCommandButtonStyle() {
     return ButtonStyle(
-        backgroundColor: MaterialStateColor.resolveWith((states) => Colors.black),
-        foregroundColor: MaterialStateColor.resolveWith((states) => Colors.grey)
+        backgroundColor: WidgetStateColor.resolveWith((states) => Colors.black),
+        foregroundColor: WidgetStateColor.resolveWith((states) => Colors.grey)
     );
   }
 
@@ -305,7 +305,7 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
       if (colorMap[player[MoleFields.moleFieldSide]] == side)  {
         playlist.add(TextButton(
             onPressed: () {
-              Dialogs.getValue(ValueDialog(PlayerOptionsDialog(
+              ZugDialogs.getValue(ValueDialog(PlayerOptionsDialog(
                   UniqueName.fromData(player[fieldUser]),
                   game,
                   bkgColor: Colors.black,
@@ -331,13 +331,13 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
     List<Widget> voteList = [];
     if (votes.isNotEmpty) { //print(hoverVotes);
       voteList.add(
-          Text("${ZugUtils.getUserName(votes['selected'][fieldPlayer][fieldUser])}: ${votes['selected']['move']['san']}",
+          Text("${UniqueName.fromData(votes['selected'][fieldPlayer][fieldUser])}: ${votes['selected']['move']['san']}",
               style: TextStyle(color: txtColor ?? HexColor.fromHex(votes['selected'][fieldPlayer][fieldChatColor])))
       );
       if (votes['alts'] != null) {
         for (Map<String,dynamic> alt in votes['alts']) {
           voteList.add(
-              Text("${ZugUtils.getUserName(alt[fieldPlayer][fieldUser])}: ${alt['move']['san']}",
+              Text("${UniqueName.fromData(alt[fieldPlayer][fieldUser])}: ${alt['move']['san']}",
                   style: TextStyle(color: txtColor ?? HexColor.fromHex(alt[fieldPlayer][fieldChatColor])))
           );
         }

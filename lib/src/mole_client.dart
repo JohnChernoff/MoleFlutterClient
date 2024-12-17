@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:async';
 import 'dart:math';
 import 'package:chess/chess.dart' as dc;
@@ -10,11 +9,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart';
 import 'package:mole_app/src/mole_dialogs.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:zug_utils/zug_dialogs.dart';
+import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/dialogs.dart';
-import 'package:zugclient/oauth_client.dart';
 import 'package:zugclient/zug_client.dart';
 import 'package:zugclient/zug_fields.dart';
-import 'package:zugclient/zug_utils.dart';
 import '../firebase_options.dart';
 import 'package:flutter/services.dart';
 import 'mole_fields.dart';
@@ -111,7 +110,7 @@ class MoleClient extends ZugClient {
   }
 
   @override
-  Enum handleMsg(String msg) {
+  Enum handleMsg(dynamic msg) {
     Enum e = super.handleMsg(msg);
     //ZugClient.log.info("Received: $e");
     return e;
@@ -119,7 +118,7 @@ class MoleClient extends ZugClient {
 
   @override
   void startArea() {
-    Dialogs.getValue(const ValueDialog(TimeSelectDialogOptions()))
+    ZugDialogs.getValue(const ValueDialog(TimeSelectDialogOptions()))
         .then((value) => areaCmd(ClientMsg.startArea, data: {"time" : value}));
   }
 
@@ -132,7 +131,7 @@ class MoleClient extends ZugClient {
   bool loggedIn(data) {
     if (autoJoinTitle == null) {
       int i = Random().nextInt(2) + 1;
-      Dialogs.showClickableDialog(MusicStackDialog(this,"mole_intro1",
+      ZugDialogs.showClickableDialog(MusicStackDialog(this,"mole_intro1",
           [
             Image(image: ZugUtils.getAssetImage("images/mole_dance_bkg${i.toString()}.gif")),
             Image(image: ZugUtils.getAssetImage("images/mole_dance3.gif")),
@@ -147,7 +146,7 @@ class MoleClient extends ZugClient {
     ZugClient.log.info("Connected");
     super.connected();
     send(MoleClientMsg.version);
-    checkRedirect(OauthClient("lichess.org",clientName));
+    checkRedirect("lichess.org");
   }
 
   @override
@@ -167,7 +166,7 @@ class MoleClient extends ZugClient {
 
   void handlePlayerAction(Map<String, dynamic> action) { //print(action);
     if (action["action"] == PlayerAction.accuse) {
-      Dialogs.confirm("Accuse ${action["playerName"]}?").then((confirmed) {
+      ZugDialogs.confirm("Accuse ${action["playerName"]}?").then((confirmed) {
         if (confirmed) {
           send(MoleClientMsg.voteoff, data: {
             fieldPlayer: action["playerName"].toJSON(),
@@ -177,7 +176,7 @@ class MoleClient extends ZugClient {
       });
     }
     else if (action["action"] == PlayerAction.kick) {
-      Dialogs.confirm("Kick ${action["playerName"]}?").then((confirmed) {
+      ZugDialogs.confirm("Kick ${action["playerName"]}?").then((confirmed) {
         if (confirmed) {
           send(MoleClientMsg.kickoff, data: {
             fieldPlayer: action["playerName"].toJSON(),
@@ -187,7 +186,7 @@ class MoleClient extends ZugClient {
       });
     }
     else if (action["action"] == PlayerAction.ban) {
-      Dialogs.confirm("Ban ${action["playerName"]}?").then((confirmed) {
+      ZugDialogs.confirm("Ban ${action["playerName"]}?").then((confirmed) {
         if (confirmed) {
           send(ClientMsg.ban, data: {
             fieldName: action["playerName"].toJSON(),
@@ -202,7 +201,7 @@ class MoleClient extends ZugClient {
       });
     }
     else if (action["action"] == PlayerAction.whisper) {
-      Dialogs.getString("Enter a whisper to ${action["playerName"]}", "").then((msg) =>
+      ZugDialogs.getString("Enter a whisper to ${action["playerName"]}", "").then((msg) =>
       send(ClientMsg.privMsg, data: {
         fieldName: action["playerName"].toJSON(),
         fieldMsg: msg
@@ -245,7 +244,7 @@ class MoleClient extends ZugClient {
         ZugClient.log.info('Message notification: ${message.notification?.body}');
       }
       messageStreamController.sink.add(message);
-      Dialogs.popup(message.notification?.body ?? "Unknown notification");
+      ZugDialogs.popup(message.notification?.body ?? "Unknown notification");
     });
 
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -264,11 +263,11 @@ class MoleClient extends ZugClient {
   }
 
   void handleFinger(data) {
-    Dialogs.popup(data.toString());
+    ZugDialogs.popup(data.toString());
   }
 
   Future<void> handlePGN(data) async {
-    Clipboard.setData(ClipboardData(text: data[fieldMsg] ?? "?".toString())).then((value) => Dialogs.popup("Copied PGN to clipboard"));
+    Clipboard.setData(ClipboardData(text: data[fieldMsg] ?? "?".toString())).then((value) => ZugDialogs.popup("Copied PGN to clipboard"));
   }
 
   void getPlayerHistory(UniqueName? uName) {
@@ -299,7 +298,7 @@ class MoleClient extends ZugClient {
     Area game = getOrCreateArea(data);
     if (game is MoleGame && game == currentArea) {
       playClip("defect");
-      Dialogs.popup("${ZugUtils.getOccupantName(data[fieldPlayer])} defects!",
+      ZugDialogs.popup("${UniqueName.fromData(data[fieldPlayer])} defects!",
           imgFile: "defection.png");
     }
   }
@@ -308,7 +307,7 @@ class MoleClient extends ZugClient {
     Area game = getOrCreateArea(data);
     if (game is MoleGame && game == currentArea) {
       playClip("rampage");
-      Dialogs.popup("${ZugUtils.getOccupantName(data[fieldPlayer])} rampages!",
+      ZugDialogs.popup("${UniqueName.fromData(data[fieldPlayer])} rampages!",
           imgFile: "rampage.png");
     }
   }
@@ -317,7 +316,7 @@ class MoleClient extends ZugClient {
     Area game = getOrCreateArea(data);
     if (game is MoleGame && game == currentArea) {
       playClip("bomb");
-      Dialogs.popup("${ZugUtils.getOccupantName(data)} bombs!",
+      ZugDialogs.popup("${UniqueName.fromData(data)} bombs!",
           imgFile: "molebomb.png");
     }
   }
@@ -353,7 +352,7 @@ class MoleClient extends ZugClient {
         track = "mole_defeat";
       }
 
-      Dialogs.showClickableDialog(
+      ZugDialogs.showClickableDialog(
           MusicStackDialog(this,track,[MoleDance("Game Over: $winnerString Wins!",moleImg)])
       );
     }
@@ -370,7 +369,7 @@ class MoleClient extends ZugClient {
     }
     else {
       playClip("role_${role.toLowerCase()}");
-      Dialogs.popup("You are the $role",imgFile: "${role.toLowerCase()}.png");
+      ZugDialogs.popup("You are the $role",imgFile: "${role.toLowerCase()}.png");
     }
   }
 
@@ -457,7 +456,7 @@ class MoleClient extends ZugClient {
   void handleErrorMessage(data) {
     final source = areas[data[fieldTitle]]?.title ?? fieldServ;
     playClip("doink");
-    Dialogs.popup("$source: ${data[fieldMsg]}");
+    ZugDialogs.popup("$source: ${data[fieldMsg]}");
   }
 
   void handleGameUpdate(data) { //print("Game Update: ${jsonEncode(data).toString()}");
@@ -505,7 +504,7 @@ class MoleClient extends ZugClient {
 
   void copyGameLink(MoleGame game) {
     String link = "https://molechess.com?goto=${game.title}";
-    Clipboard.setData(ClipboardData(text: link)).then((value) => Dialogs.popup("Copied game link to clipboard: $link"));
+    Clipboard.setData(ClipboardData(text: link)).then((value) => ZugDialogs.popup("Copied game link to clipboard: $link"));
   }
 
 }

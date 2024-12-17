@@ -1,8 +1,8 @@
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:mole_app/src/mole_client.dart';
+import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_fields.dart';
-import 'package:zugclient/zug_utils.dart';
 import 'main_page.dart';
 import 'dart:math' as math;
 

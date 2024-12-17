@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_client.dart';
-import 'package:zugclient/zug_utils.dart';
 import 'mole_client.dart';
 import 'mole_fields.dart';
 

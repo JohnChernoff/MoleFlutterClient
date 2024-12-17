@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/options_page.dart';
 import 'package:zugclient/zug_client.dart';
-import 'package:zugclient/zug_utils.dart';
 import 'mole_client.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart';
 import 'mole_fields.dart';
@@ -92,8 +92,8 @@ class _MoleOptionsPageState extends State<MoleOptionsPage> {
                 }),
           ],
         ),
-        ZugUtils.checkRow(widget.client,"Sound", "sound", ZugClient.defaultSound,() => setState((){}),onFalse: () => widget.client.audio.stop()),
-        ZugUtils.checkRow(widget.client,"Streamer Mode", "streamer_mode",false,() => setState((){})),
+        checkRow(widget.client,"Sound", "sound", ZugClient.defaultSound,onTrue: () => setState((){}),onFalse: () => widget.client.trackPlayer.stop()),
+        checkRow(widget.client,"Streamer Mode", "streamer_mode",false,onFalse: () => setState((){})),
         //ZugUtils.checkRow(widget.client, this, "Movelist Hover Mode", "movelist_hover", MoleClient.defaultMoveListHover),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -126,6 +126,28 @@ class _MoleOptionsPageState extends State<MoleOptionsPage> {
             ),
           ],
         ),
+      ],
+    );
+  }
+
+  Row checkRow(ZugClient client, String caption, String prefProp, bool defaultValue, {Function? onTrue, Function? onFalse}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text("$caption:"),
+        Checkbox(
+            value: client.prefs?.getBool(prefProp) ?? defaultValue,
+            onChanged: (b) {
+              client.prefs?.setBool(prefProp, b ?? defaultValue);
+              ZugClient.log.info("Setting $caption: $b");
+              if ((b ?? false)) {
+                if (onTrue != null) onTrue();
+              } else {
+                if (onFalse != null) {
+                  onFalse();
+                }
+              }
+            }),
       ],
     );
   }

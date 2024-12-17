@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.7.0+1
+version: 0.7.1+1
 
 environment:
   sdk: '>=3.1.3 <4.0.0'
@@ -52,6 +52,8 @@ dependencies:
     path: "C:/Users/jac107/IdeaProjects/flutter/zugclient"
   flutter_chess_board:
     path: "C:/Users/jac107/IdeaProjects/flutter/3p/flutter_chess_board-master"
+  zug_utils:
+    path: "C:/Users/jac107/IdeaProjects/flutter/zug_utils"
   fluttertoast: ^8.2.4
   universal_html: ^2.2.4
 
