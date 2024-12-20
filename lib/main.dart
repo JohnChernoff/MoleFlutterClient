@@ -46,7 +46,7 @@ class MoleApp extends ZugApp {
 
   Color _getAppBarColor(BuildContext context, ZugClient client) {
     return switch(client.selectedPage) {
-      PageType.main => Colors.black,
+      PageType.main => Colors.grey, //blueGrey,
       PageType.lobby => Colors.greenAccent, //Colors.brown,
       PageType.options => Colors.orange,
       PageType.none => Colors.white,
@@ -89,8 +89,8 @@ class MoleApp extends ZugApp {
         : _getAppInfo(client as MoleClient);
     return AppBar(
         title: Text(txt),
-        foregroundColor: _getAppBarColor(context, client),
-        backgroundColor: client.selectedPage == PageType.main ? Colors.grey : Colors.black);
+        foregroundColor: _getAppBarColor(context, client), //blueGrey
+        backgroundColor: client.selectedPage == PageType.main ? Colors.black : Colors.black);
   }
 
   @override

@@ -115,6 +115,8 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
         width: (widget.landscape ? null : screenWidth),
         height: screenHeight - (statusHeight ?? 0),
         serverName: "General",
+        borderColor: Colors.grey,
+        cmdBkgColor: Colors.brown,
     );
 
     return widget.landscape
@@ -147,7 +149,7 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
         )
     );
     return Container(
-      color: widget.backgroundColor,
+      color: Colors.black, //widget.backgroundColor,
       width: boardSize + (widget.landscape ? moveListWidth * 2 : 0),
       child: Column(
         //mainAxisAlignment: MainAxisAlignment.start,
@@ -177,20 +179,23 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
 
   Widget getBoard(MoleGame game, double boardSize) {
     int pieceSet = widget.client.prefs?.getInt("piece_set") ?? defaultPieceSetIndex;
-    BoardColor boardColor = BoardColor.values.singleWhere((element) => element.name.toLowerCase() == widget.client.prefs?.getString("board_colors"),orElse: () => BoardColor.green);
+    BoardColor boardColor = BoardColor.values.singleWhere((element) => element.name == widget.client.prefs?.getString("board_colors"),orElse: () => BoardColor.green);
     //final String fen = hoverFEN ?? game.fen; //print("Generating board: $fen");
-    return ChessBoard(
+    return Container(
+        padding: const EdgeInsets.all(3.0),
+        color: Colors.grey,
+        child: ChessBoard(
       dragHighlightColor: Colors.orange,
       boardColor: boardColor,
       pieceSet: widget.client.customSets[pieceSet].name.toLowerCase(),
       controller: widget.client.chessBoardController,
       enableUserMoves: hoverFEN == null,
       boardOrientation: game.orientation ?? game.getUserSide(widget.client.userName) ?? PlayerColor.white,
-      size: boardSize,
+      size: boardSize-6,
       arrows: getArrows(historySnapshot),
       onMove: widget.client.sendMove,
       blackPieceColor: Colors.white,
-    );
+    ));
   }
 
   Widget getMoveList(double boardSize) {
@@ -207,7 +212,7 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
     }
     if (cg.moves.length % 2 == 0) rowList.add(getMoveBox(cg.moves.length));
     return Container(
-        color: Colors.brown,
+        color: Colors.black,
         width: widget.landscape ? moveListWidth * 2 : boardSize,
         height: widget.landscape ? boardSize : moveListHeight * 2,
         child: ListView(

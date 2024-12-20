@@ -79,8 +79,7 @@ class _MoleOptionsPageState extends State<MoleOptionsPage> {
                 value: widget.client.prefs?.getString("board_colors") ?? defaultBoardColorScheme.name,
                 items: List.generate(
                     BoardColor.values.length, (index) {
-                  final schemeTxt =
-                  BoardColor.values.elementAt(index).name;
+                  final schemeTxt = BoardColor.values.elementAt(index).name;
                   return DropdownMenuItem(
                     value: schemeTxt,
                     child: Text(schemeTxt),

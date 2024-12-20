@@ -130,13 +130,15 @@ class MoleLobbyPage extends LobbyPage {
       UniqueName uName = UniqueName.fromData(player[fieldUser]);
       Color pColor = HexColor.fromHex(player[fieldChatColor]);
       rows.add(DataRow(cells: [
-        DataCell(Text(uName.name,textScaler: const TextScaler.linear(1.5), style : TextStyle(backgroundColor: Colors.black, color: pColor))),
+        DataCell(
+            FittedBox(child:
+            Text(uName.name,textScaler: const TextScaler.linear(1.5), style : TextStyle(backgroundColor: Colors.black, color: pColor)))),
         DataCell(Container(
             color: colorMap[player["game_col"]],
             margin: const EdgeInsets.all(8),
         )),
         DataCell(Text(player["user"]["blitz"].toString())),
-        DataCell(Text(player["votename"])),
+        DataCell(FittedBox(child: Text(player["votename"]))),
         //DataCell(getIconButton(uName, Icons.where_to_vote,MoleClientMsg.voteoff,cg.title)),
         DataCell(getIconButton(uName, player["kickable"] ? Icons.remove_circle_outline : Icons.not_interested,MoleClientMsg.kickoff,cg.title)),
       ]));
