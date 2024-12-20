@@ -18,9 +18,8 @@ class MoleLobbyPage extends LobbyPage {
 
   MoleLobbyPage(super.client, {
     super.areaName ="Mole Game",
+    super.buttonsBkgColor = Colors.black,
     super.backgroundImage,
-    super.backgroundColor,
-    super.foregroundColor,
     super.helpPage,
     super.chatArea,
     super.key});
@@ -71,13 +70,13 @@ class MoleLobbyPage extends LobbyPage {
   }
 
   @override
-  Widget getAreaItem(String? title) {  //print("Title: $title");
-    if (title == null || title == ZugClient.noAreaTitle) return super.getAreaItem(title);
+  Widget getAreaItem(String? title,context) {  //print("Title: $title");
+    if (title == null || title == ZugClient.noAreaTitle) return super.getAreaItem(title,context);
     MoleGame game = (client.areas[title] as MoleGame);
     return Row(
       children: [
-        super.getAreaItem(title),
-        super.getAreaItem(getGamePhase(game.listData["phase"])),
+        super.getAreaItem(title,context),
+        super.getAreaItem(getGamePhase(game.listData["phase"]),context),
       ],
     );
   }

@@ -128,7 +128,7 @@ class MoleClient extends ZugClient {
   }
 
   @override
-  bool loggedIn(data) {
+  Future<bool> loggedIn(data) async {
     if (autoJoinTitle == null) {
       int i = Random().nextInt(2) + 1;
       ZugDialogs.showClickableDialog(MusicStackDialog(this,"mole_intro1",

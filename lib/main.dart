@@ -10,7 +10,6 @@ import 'package:logging/logging.dart';
 import 'package:zugclient/zug_chat.dart';
 import 'package:zugclient/zug_client.dart';
 import 'package:zugclient/zug_fields.dart';
-//import 'package:zugclient/zug_utils.dart';
 
 //TODO: coordinates option
 //autologin for lichess, etc. (use prefs)
@@ -36,6 +35,8 @@ class MoleApp extends ZugApp {
   MoleApp(super.client,super.appName,{
     super.splashLandscapeImgPath = "images/splash_land.png", //TODO: place in mole.ini
     super.logLevel = Level.INFO,
+    //super.colorSeed = Colors.greenAccent,
+    super.colorSeed = Colors.brown,
     super.key
   });
 
@@ -46,7 +47,7 @@ class MoleApp extends ZugApp {
   Color _getAppBarColor(BuildContext context, ZugClient client) {
     return switch(client.selectedPage) {
       PageType.main => Colors.black,
-      PageType.lobby => Colors.brown,
+      PageType.lobby => Colors.greenAccent, //Colors.brown,
       PageType.options => Colors.orange,
       PageType.none => Colors.white,
     };
@@ -67,8 +68,6 @@ class MoleApp extends ZugApp {
     return MoleLobbyPage(
       client,
       backgroundImage: ZugUtils.getAssetImage("images/molefog.png"),
-      backgroundColor: defaultColorScheme.surface,
-      foregroundColor: defaultColorScheme.onSurface,
       helpPage: "https://molechess.com/help/index.html",
       chatArea: ZugChat(client,
           widthFactor: .33,
