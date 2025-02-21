@@ -48,8 +48,8 @@ dependencies:
   styled_text: ^8.1.0
   shared_preferences: ^2.2.2
   zugclient:
-    git: "https://github.com/JohnChernoff/zugclient"
-    #path: C:/Users/jac107/IdeaProjects/flutter/zugclient
+    #git: "https://github.com/JohnChernoff/zugclient"
+    path: C:/Users/jac107/IdeaProjects/flutter/zugclient
   zug_utils:
     git: "https://github.com/JohnChernoff/zug_utils"
   flutter_chess_board:

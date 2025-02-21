@@ -18,14 +18,12 @@ class MoleLobbyPage extends LobbyPage {
 
   MoleLobbyPage(super.client, {
     super.areaName ="Mole Game",
-    super.buttonsBkgColor = Colors.black,
     super.backgroundImage,
-    super.helpPage,
     super.chatArea,
     super.key});
 
   @override
-  Widget selectedArea(BuildContext context) {
+  Widget selectedArea(BuildContext context,{Color? bkgCol, Color? txtCol}) {
     List<DataRow> rows = _gameRows();
     if (rows.isEmpty) return const SizedBox.shrink();
     return Column(
@@ -149,14 +147,14 @@ class MoleLobbyPage extends LobbyPage {
   IconButton getIconButton(UniqueName targetUniqueName, IconData iconData, Enum action, String title) {
     return IconButton(
         onPressed: () {
-          client.send(action, data: { "player" : targetUniqueName.toJSON(), fieldTitle : title}); //TODO: deal with authSource
+          client.send(action, data: { "player" : targetUniqueName.toJSON(), fieldID : title}); //TODO: deal with authSource
         },
         icon: Icon(
           iconData,
         ));
   }
 
-  @override
+  //TODO: add this in
   Widget getSocialMediaButtons() {
     return ElevatedButton(
         style: getButtonStyle(Colors.purple, Colors.purpleAccent),

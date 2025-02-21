@@ -48,7 +48,7 @@ class MoleApp extends ZugApp {
     return switch(client.selectedPage) {
       PageType.main => Colors.grey, //blueGrey,
       PageType.lobby => Colors.greenAccent, //Colors.brown,
-      PageType.options => Colors.orange,
+      PageType.options => Colors.blue,
       PageType.none => Colors.white,
     };
   }
@@ -68,9 +68,9 @@ class MoleApp extends ZugApp {
     return MoleLobbyPage(
       client,
       backgroundImage: ZugUtils.getAssetImage("images/molefog.png"),
-      helpPage: "https://molechess.com/help/index.html",
+      //helpPage: "https://molechess.com/help/index.html",
       chatArea: ZugChat(client,
-          widthFactor: .33,
+          width: 1000,
           serverName: "Lobby",
           defScope: MessageScope.server),
     );

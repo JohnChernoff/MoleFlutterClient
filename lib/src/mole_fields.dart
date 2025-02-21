@@ -52,7 +52,8 @@ class MoleFields {
       moleFieldTime = "time",
       moleFieldPromotion = "promotion",
       moleFieldConfirm = "confirm",
-      moleFieldSide = "game_col";
+      moleFieldSide = "game_col",
+      moleFieldAction = "action";
 }
 
 

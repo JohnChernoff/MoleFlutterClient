@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 import 'package:chess/chess.dart' as dc;
 import 'package:chessground/chessground.dart';
@@ -14,9 +15,12 @@ import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/dialogs.dart';
 import 'package:zugclient/zug_client.dart';
 import 'package:zugclient/zug_fields.dart';
+import 'package:zugclient/zug_option.dart';
 import '../firebase_options.dart';
 import 'package:flutter/services.dart';
 import 'mole_fields.dart';
+
+//TODO: ZugOptions, Lobby dimensions
 
 class MoleGame extends Area {
 
@@ -50,6 +54,8 @@ class CustomPieceSet {
   IMap<PieceKind, AssetImage> pieceSet;
   CustomPieceSet(this.name,this.pieceSet);
 }
+
+enum MoleOption {pieceSet,boardColors,streamerMode}
 
 class MoleClient extends ZugClient {
 
@@ -94,6 +100,12 @@ class MoleClient extends ZugClient {
     //print(waitMap[MoleServMsg.history]);
     loadChessgroundPieceSets();
     //initFire().then((value) {  //_connect(); } );
+
+    loadOptions([
+      (MoleOption.pieceSet,ZugOption(customSets.last.name,label: "Piece Set", enums: List.generate(customSets.length, (i) => customSets.elementAt(i).name))),
+      (MoleOption.boardColors,ZugOption(BoardColor.darkBrown.name,label: "Board Color",enums: List.generate(BoardColor.values.length, (i) => BoardColor.values.elementAt(i).name))),
+      (MoleOption.streamerMode,ZugOption(false,label: "Streamer Mode"))
+    ]);
   }
 
   void loadChessgroundPieceSets() {
@@ -165,45 +177,45 @@ class MoleClient extends ZugClient {
   }
 
   void handlePlayerAction(Map<String, dynamic> action) { //print(action);
-    if (action["action"] == PlayerAction.accuse) {
-      ZugDialogs.confirm("Accuse ${action["playerName"]}?").then((confirmed) {
+    if (action[MoleFields.moleFieldAction] == PlayerAction.accuse) {
+      ZugDialogs.confirm("Accuse ${action[fieldUniqueName]}?").then((confirmed) {
         if (confirmed) {
           send(MoleClientMsg.voteoff, data: {
-            fieldPlayer: action["playerName"].toJSON(),
-            fieldTitle: action["gameTitle"]
+            fieldPlayer: action[fieldUniqueName].toJSON(),
+            fieldAreaID: action[fieldAreaID]
           });
         }
       });
     }
-    else if (action["action"] == PlayerAction.kick) {
-      ZugDialogs.confirm("Kick ${action["playerName"]}?").then((confirmed) {
+    else if (action[MoleFields.moleFieldAction] == PlayerAction.kick) {
+      ZugDialogs.confirm("Kick ${action[fieldUniqueName]}?").then((confirmed) {
         if (confirmed) {
           send(MoleClientMsg.kickoff, data: {
-            fieldPlayer: action["playerName"].toJSON(),
-            fieldTitle: action["gameTitle"]
+            fieldPlayer: action[fieldUniqueName].toJSON(),
+            fieldAreaID: action[fieldAreaID]
           });
         }
       });
     }
-    else if (action["action"] == PlayerAction.ban) {
-      ZugDialogs.confirm("Ban ${action["playerName"]}?").then((confirmed) {
+    else if (action[MoleFields.moleFieldAction] == PlayerAction.ban) {
+      ZugDialogs.confirm("Ban ${action[fieldUniqueName]}?").then((confirmed) {
         if (confirmed) {
           send(ClientMsg.ban, data: {
-            fieldName: action["playerName"].toJSON(),
-            fieldTitle: action["gameTitle"]
+            fieldName: action[fieldUniqueName].toJSON(),
+            fieldAreaID: action[fieldAreaID]
           });
         }
       });
     }
-    else if (action["action"] == PlayerAction.finger) {
+    else if (action[MoleFields.moleFieldAction] == PlayerAction.finger) {
       send(MoleClientMsg.finger, data: {
-        fieldName: action["playerName"].toJSON(),
+        fieldName: action[fieldUniqueName].toJSON(),
       });
     }
-    else if (action["action"] == PlayerAction.whisper) {
-      ZugDialogs.getString("Enter a whisper to ${action["playerName"]}", "").then((msg) =>
+    else if (action[MoleFields.moleFieldAction] == PlayerAction.whisper) {
+      ZugDialogs.getString("Enter a whisper to ${action[fieldUniqueName]}", "").then((msg) =>
       send(ClientMsg.privMsg, data: {
-        fieldName: action["playerName"].toJSON(),
+        fieldName: action[fieldUniqueName].toJSON(),
         fieldMsg: msg
       }));
     }
@@ -365,7 +377,7 @@ class MoleClient extends ZugClient {
   void handleRole(data) {
     String role = data[fieldMsg]; //if (game is MoleGame && game == currentArea) {}
     if (isStreamerMode()) {
-      addAreaMsg("You are the $role",data[fieldTitle],hidden: true);
+      addAreaMsg("You are the $role",data[fieldAreaID],hidden: true);
     }
     else {
       playClip("role_${role.toLowerCase()}");
@@ -389,7 +401,7 @@ class MoleClient extends ZugClient {
     if (data["phase"] == "POSTGAME") {
       addAreaMsg(
           "Game closing in ${data["timeRemaining"]} seconds",
-          data[fieldTitle]
+          data[fieldAreaID]
       );
     }
     //handleAreaChange({fieldAreaChange : AreaChange.updated, fieldArea : data});
@@ -416,7 +428,7 @@ class MoleClient extends ZugClient {
     dc.Move lastMove = chessBoardController.game.history.last.move;
     ZugClient.log.info("Sending move: ${lastMove.fromAlgebraic}${lastMove.toAlgebraic}");
     send(MoleServMsg.move,data: {
-      fieldTitle : currentArea.title,
+      fieldAreaID : currentArea.title,
       "move" : "${lastMove.fromAlgebraic}${lastMove.toAlgebraic}",
       "promotion" : lastMove.promotion?.name ?? ""
     });
@@ -454,12 +466,12 @@ class MoleClient extends ZugClient {
   }
 
   void handleErrorMessage(data) {
-    final source = areas[data[fieldTitle]]?.title ?? fieldServ;
+    final source = areas[data[fieldAreaID]]?.title ?? fieldServ;
     playClip("doink");
     ZugDialogs.popup("$source: ${data[fieldMsg]}");
   }
 
-  void handleGameUpdate(data) { //print("Game Update: ${jsonEncode(data).toString()}");
+  void handleGameUpdate(data) { print("Game Update: ${jsonEncode(data).toString()}");
     if (data["exists"] != true) return;
     Area game = getOrCreateArea(data); //print("Game Update: $data");
     if (game is MoleGame) { //&& game == currentArea) {

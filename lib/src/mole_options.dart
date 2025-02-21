@@ -3,7 +3,7 @@ import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/options_page.dart';
 import 'package:zugclient/zug_client.dart';
 import 'mole_client.dart';
-import 'package:flutter_chess_board/flutter_chess_board.dart';
+import 'package:flutter_chess_board/flutter_chess_board.dart' hide Color;
 import 'mole_fields.dart';
 
 class MoleOptionsPage extends StatefulWidget {
@@ -20,80 +20,31 @@ class _MoleOptionsPageState extends State<MoleOptionsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = ZugUtils.getActualScreenHeight(context);
     final bool inGame = widget.client.currentArea.title != noGameTitle;
 
-    return Column(
+    return ColoredBox(color: Colors.blue, child: DefaultTabController(length: 2, child: Column(
       children: [
-        Container(
-          color: Colors.greenAccent,
-          width: screenWidth,
-          height: inGame ? screenHeight/3 : screenHeight,
-          child: Column(
-            children: [
-              const SizedBox(
-                child: Text("General Options",style: TextStyle(fontSize: 24)),
-              ),
-              const Divider(
-                color: Colors.black,
-              ),
-              Expanded(child: getGeneralOptions(screenWidth)),
-            ],
-          )
-
-        ),
-        !inGame ? const SizedBox.shrink() : Expanded(
-          child: OptionsPage(widget.client, header: const SizedBox.shrink()),
-        )
+        const TabBar(indicatorColor: Colors.white, labelColor: Colors.white, tabs: [
+          Text("General Options",style: TextStyle(fontSize: 24)),
+          Text("Game Options",style: TextStyle(fontSize: 24)),
+        ]),
+        Expanded(child: TabBarView(children: [
+          getGeneralOptions(),
+          OptionsPage(widget.client, scope: OptionScope.area, customHeader: const SizedBox.shrink())
+        ]))
       ],
-    );
+    )));
   }
 
-  Widget getGeneralOptions(double screenWidth) {
-    return ListView(
+  Widget getGeneralOptions() {
+    return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text("Piece Set:  "),
-            DropdownButton<int>(
-                value: widget.client.prefs?.getInt("piece_set") ?? defaultPieceSetIndex,
-                items: List.generate(widget.client.customSets.length, (index) {
-                  return DropdownMenuItem(
-                    value: index,
-                    child: Text(widget.client.customSets[index].name),
-                  );
-                }, growable: false),
-                onChanged: (value) {
-                  widget.client.prefs?.setInt("piece_set", value ?? defaultPieceSetIndex);
-                  setState(() { /* piece set changed */ });
-                }),
-          ],
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text("Board Style:  "),
-            DropdownButton<String>(
-                value: widget.client.prefs?.getString("board_colors") ?? defaultBoardColorScheme.name,
-                items: List.generate(
-                    BoardColor.values.length, (index) {
-                  final schemeTxt = BoardColor.values.elementAt(index).name;
-                  return DropdownMenuItem(
-                    value: schemeTxt,
-                    child: Text(schemeTxt),
-                  );
-                }, growable: false),
-                onChanged: (value) {
-                  widget.client.prefs?.setString("board_colors", value ?? defaultBoardColorScheme.name);
-                  setState(() { /* board colors changed */ });
-                }),
-          ],
-        ),
-        checkRow(widget.client,"Sound", "sound", ZugClient.defaultSound,onTrue: () => setState((){}),onFalse: () => widget.client.trackPlayer.stop()),
-        checkRow(widget.client,"Streamer Mode", "streamer_mode",false,onFalse: () => setState((){})),
-        //ZugUtils.checkRow(widget.client, this, "Movelist Hover Mode", "movelist_hover", MoleClient.defaultMoveListHover),
+        Expanded(child: OptionsPage(
+            widget.client,scope: OptionScope.general,
+            //optionsBackgroundColor: Colors.orange, //const Color(0xFF88AA55),
+            //optionsDropdownCBkgCol: Colors.cyan,
+            //optionsTextColor: Colors.black,
+            customHeader: const SizedBox.shrink())),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -125,28 +76,6 @@ class _MoleOptionsPageState extends State<MoleOptionsPage> {
             ),
           ],
         ),
-      ],
-    );
-  }
-
-  Row checkRow(ZugClient client, String caption, String prefProp, bool defaultValue, {Function? onTrue, Function? onFalse}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text("$caption:"),
-        Checkbox(
-            value: client.prefs?.getBool(prefProp) ?? defaultValue,
-            onChanged: (b) {
-              client.prefs?.setBool(prefProp, b ?? defaultValue);
-              ZugClient.log.info("Setting $caption: $b");
-              if ((b ?? false)) {
-                if (onTrue != null) onTrue();
-              } else {
-                if (onFalse != null) {
-                  onFalse();
-                }
-              }
-            }),
       ],
     );
   }
