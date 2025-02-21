@@ -35,8 +35,7 @@ class MoleApp extends ZugApp {
   MoleApp(super.client,super.appName,{
     super.splashLandscapeImgPath = "images/splash_land.png", //TODO: place in mole.ini
     super.logLevel = Level.INFO,
-    //super.colorSeed = Colors.greenAccent,
-    super.colorSeed = Colors.brown,
+    super.colorSeed = Colors.brown, //Colors.greenAccent,
     super.key
   });
 

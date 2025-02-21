@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/options_page.dart';
-import 'package:zugclient/zug_client.dart';
 import 'mole_client.dart';
-import 'package:flutter_chess_board/flutter_chess_board.dart' hide Color;
 import 'mole_fields.dart';
 
 class MoleOptionsPage extends StatefulWidget {
@@ -22,15 +19,15 @@ class _MoleOptionsPageState extends State<MoleOptionsPage> {
   Widget build(BuildContext context) {
     final bool inGame = widget.client.currentArea.title != noGameTitle;
 
-    return ColoredBox(color: Colors.blue, child: DefaultTabController(length: 2, child: Column(
+    return ColoredBox(color: Colors.blue, child: DefaultTabController(length: inGame ? 2 : 1, child: Column(
       children: [
-        const TabBar(indicatorColor: Colors.white, labelColor: Colors.white, tabs: [
-          Text("General Options",style: TextStyle(fontSize: 24)),
-          Text("Game Options",style: TextStyle(fontSize: 24)),
+        TabBar(indicatorColor: Colors.white, labelColor: Colors.white, tabs: [
+          if (inGame) const Text("Game Options",style: TextStyle(fontSize: 24)),
+          const Text("General Options",style: TextStyle(fontSize: 24)),
         ]),
         Expanded(child: TabBarView(children: [
+          if (inGame) OptionsPage(widget.client, scope: OptionScope.area, customHeader: const SizedBox.shrink()),
           getGeneralOptions(),
-          OptionsPage(widget.client, scope: OptionScope.area, customHeader: const SizedBox.shrink())
         ]))
       ],
     )));

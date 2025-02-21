@@ -103,7 +103,7 @@ class MoleClient extends ZugClient {
 
     loadOptions([
       (MoleOption.pieceSet,ZugOption(customSets.last.name,label: "Piece Set", enums: List.generate(customSets.length, (i) => customSets.elementAt(i).name))),
-      (MoleOption.boardColors,ZugOption(BoardColor.darkBrown.name,label: "Board Color",enums: List.generate(BoardColor.values.length, (i) => BoardColor.values.elementAt(i).name))),
+      (MoleOption.boardColors,ZugOption(BoardColor.green.name,label: "Board Color",enums: List.generate(BoardColor.values.length, (i) => BoardColor.values.elementAt(i).name))),
       (MoleOption.streamerMode,ZugOption(false,label: "Streamer Mode"))
     ]);
   }

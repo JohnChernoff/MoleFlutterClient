@@ -177,17 +177,14 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
     );
   }
 
-  Widget getBoard(MoleGame game, double boardSize) {
-    int pieceSet = widget.client.prefs?.getInt("piece_set") ?? defaultPieceSetIndex;
-    BoardColor boardColor = BoardColor.values.singleWhere((element) => element.name == widget.client.prefs?.getString("board_colors"),orElse: () => BoardColor.green);
-    //final String fen = hoverFEN ?? game.fen; //print("Generating board: $fen");
+  Widget getBoard(MoleGame game, double boardSize) { //final String fen = hoverFEN ?? game.fen; //print("Generating board: $fen");
     return Container(
         padding: const EdgeInsets.all(3.0),
         color: Colors.grey,
         child: ChessBoard(
       dragHighlightColor: Colors.orange,
-      boardColor: boardColor,
-      pieceSet: widget.client.customSets[pieceSet].name.toLowerCase(),
+      boardColor: BoardColor.values.singleWhere((element) => element.name == widget.client.getOption(MoleOption.boardColors)?.getString(),orElse: () => BoardColor.green),
+      pieceSet: widget.client.getOption(MoleOption.pieceSet)?.getString() ?? "mole",
       controller: widget.client.chessBoardController,
       enableUserMoves: hoverFEN == null,
       boardOrientation: game.orientation ?? game.getUserSide(widget.client.userName) ?? PlayerColor.white,
