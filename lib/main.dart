@@ -11,7 +11,7 @@ import 'package:zugclient/zug_chat.dart';
 import 'package:zugclient/zug_client.dart';
 import 'package:zugclient/zug_fields.dart';
 
-//TODO: coordinates option
+//TODO: coordinates option, music/sound, help, option descriptions
 //autologin for lichess, etc. (use prefs)
 //obvious game link button
 
@@ -58,8 +58,8 @@ class MoleApp extends ZugApp {
   }
 
   @override
-  Widget createMainPage(client) {
-    return MainMolePage(client);
+  Widget createMainPage(ZugClient client) {
+    return MainMolePage(client as MoleClient);
   }
 
   @override
@@ -76,8 +76,8 @@ class MoleApp extends ZugApp {
   }
 
   @override
-  Widget createOptionsPage(client) {
-    return MoleOptionsPage(client);
+  Widget createOptionsPage(ZugClient client) {
+    return MoleOptionsPage(client as MoleClient);
   }
 
   @override
