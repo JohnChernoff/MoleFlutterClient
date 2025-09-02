@@ -7,8 +7,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mole_app/src/mole_dialogs.dart';
 import 'package:zug_utils/zug_dialogs.dart';
 import 'package:zug_utils/zug_utils.dart';
+import 'package:zugclient/zug_area.dart';
 import 'package:zugclient/zug_chat.dart';
-import 'package:zugclient/zug_client.dart';
 import 'package:zugclient/zug_fields.dart';
 import 'main_page.dart';
 import 'mole_client.dart';
@@ -261,13 +261,15 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
     toast.showToast(
         child: toastTxt,
         toastDuration: const Duration(seconds: 2),
-        positionedToastBuilder: (context, child) {
-          return Positioned(
-            top: 16.0,
-            left: 16.0,
-            child: child,
-          );
-        });
+        gravity: ToastGravity.SNACKBAR,
+      );
+    //        positionedToastBuilder: (context, child) {
+    //           return Positioned(
+    //             top: 16.0,
+    //             left: 16.0,
+    //             child: child,
+    //           );
+    //         }
   }
 
   List<BoardArrow> getArrows(Map<String,dynamic> votes) { //print("Votes: ${votes.toString()}");
@@ -379,7 +381,7 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
                               children: hoverMoves))),
             ]),
       ),
-      cg.clockRunning ? clock ?? const SizedBox.shrink() : const SizedBox.shrink(),
+      cg.inPhase() ? clock ?? const SizedBox.shrink() : const SizedBox.shrink(),
     ]);
   }
 }

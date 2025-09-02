@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zugclient/zug_client.dart';
+import 'package:zugclient/zug_model.dart';
 import 'mole_client.dart';
-import 'dart:math';
-
 import 'mole_fields.dart';
 
 class ChessClock extends StatefulWidget {
@@ -40,24 +38,22 @@ class _ChessClockState extends State<ChessClock> {
         fit: StackFit.passthrough,
         children: [
           CustomPaint(
-            painter: ClockPainter(side == SideToMove.black ? Colors.black : Colors.white), //cg.jsonData?["turn"] == 0 ? Colors.black : Colors.white),
+            painter: ClockPainter(side == SideToMove.black ? Colors.black : Colors.white),
           ),
           CircularProgressIndicator(
             strokeAlign: -1,
             strokeWidth: 16,
             backgroundColor: Colors.red,
             color: Colors.green,
-            value: value, //widget.client.getCountPercentage(),
+            value: value,
             semanticsLabel: 'Circular progress indicator',
           ),
           Center(
               child: Text(
-                "$currentTime", //"${cg.countdown["currentTime"].floor()}", //${client.turnString()}:
+                "${currentTime.round()}",
                 style: TextStyle(
-                  fontSize: currentTime > 99 //cg.countdown["currentTime"] > 99
-                      ? 24
-                      : 42,
-                  color: side == SideToMove.black ? Colors.white : Colors.black, //cg.jsonData?["turn"] == 0 ? Colors.white : Colors.black,
+                  fontSize: currentTime > 99 ? 24 : 42,
+                  color: side == SideToMove.black ? Colors.white : Colors.black,
                 ),
               )),
         ],
@@ -67,20 +63,20 @@ class _ChessClockState extends State<ChessClock> {
 
   void _countdownLoop(int millis) async {
     WidgetsFlutterBinding.ensureInitialized();
-    ZugClient.log.fine("Starting countdown"); //int tick = 0;
+    ZugModel.log.fine("Starting countdown"); //int tick = 0;
     while (mounted) {
       await Future.delayed(Duration(milliseconds: millis), () {
         if (mounted) {
-          dynamic t = widget.client.getCurrentTime(); //print("Time: $t");
+          MoleGame g = widget.client.getCurrentGame();
           setState(() {
-            currentTime = max(t["time"].floorToDouble(),0);
-            progress = t["progress"];
-            side = widget.client.getCurrentGame().sideToMove();
+            currentTime = g.phaseTimeRemaining() / 1000;
+            progress =  g.phaseProgress();
+            side = g.sideToMove();
           });
         }
       });
     }
-    ZugClient.log.fine("Ending countdown");
+    ZugModel.log.fine("Ending countdown");
   }
 }
 

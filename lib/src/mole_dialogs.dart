@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:zug_utils/zug_utils.dart';
-import 'package:zugclient/zug_client.dart';
+import 'package:zugclient/zug_area.dart';
 import 'package:zugclient/zug_fields.dart';
 import 'mole_client.dart';
 import 'mole_fields.dart';
@@ -143,7 +143,7 @@ class PlayerOptionsDialog extends StatelessWidget {
   Map<String,dynamic> getAction(PlayerAction action) {
     return {
       MoleFields.moleFieldAction : action,
-      fieldAreaID : game.title,
+      fieldAreaID : game.id,
       fieldUniqueName : playerName
     };
   }

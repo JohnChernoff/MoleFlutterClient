@@ -17,7 +17,7 @@ class _MoleOptionsPageState extends State<MoleOptionsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool inGame = widget.client.currentArea.title != noGameTitle;
+    final bool inGame = widget.client.currentArea.id != noGameTitle;
 
     return ColoredBox(color: Colors.blue, child: DefaultTabController(length: inGame ? 2 : 1, child: Column(
       children: [

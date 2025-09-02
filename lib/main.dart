@@ -8,8 +8,8 @@ import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_app.dart';
 import 'package:logging/logging.dart';
 import 'package:zugclient/zug_chat.dart';
-import 'package:zugclient/zug_client.dart';
 import 'package:zugclient/zug_fields.dart';
+import 'package:zugclient/zug_model.dart';
 
 //TODO: coordinates option, music/sound, help, option descriptions
 //autologin for lichess, etc. (use prefs)
@@ -21,10 +21,10 @@ void main() {
     ZugUtils.getPrefs().then((prefs) {
       String domain = defaults["domain"] ?? "molechess.com";
       int port = int.parse(defaults["port"] ?? "5555");
-      String endPoint = defaults["endpoint"] ?? "server";
+      String endPoint = defaults["endpoint"] ?? "molesrv";
       bool localServer = bool.parse(defaults["localServer"] ?? "true");
       log("Starting Mole Client, domain: $domain, port: $port, endpoint: $endPoint, localServer: $localServer");
-      MoleClient client = MoleClient(domain, port, endPoint,localServer : localServer,prefs); //TODO: add default sound setting
+      MoleClient client = MoleClient(domain, port, endPoint,localServer : localServer, javalinServer: true, prefs); //TODO: add default sound setting
       runApp(MoleApp(client,"MoleChess"));
     });
   });
@@ -43,7 +43,7 @@ class MoleApp extends ZugApp {
     return "MoleClient Ver. ${client.packageInfo?.version ?? '?'}, Server Ver. ${client.serverVersion} ";
   }
 
-  Color _getAppBarColor(BuildContext context, ZugClient client) {
+  Color _getAppBarColor(BuildContext context, ZugModel client) {
     return switch(client.selectedPage) {
       PageType.main => Colors.grey, //blueGrey,
       PageType.lobby => Colors.greenAccent, //Colors.brown,
@@ -58,44 +58,44 @@ class MoleApp extends ZugApp {
   }
 
   @override
-  Widget createMainPage(ZugClient client) {
-    return MainMolePage(client as MoleClient);
+  Widget createMainPage(ZugModel model) {
+    return MainMolePage(model as MoleClient);
   }
 
   @override
-  Widget createLobbyPage(client) {
+  Widget createLobbyPage(model) {
     return MoleLobbyPage(
-      client,
-      backgroundImage: ZugUtils.getAssetImage("images/molefog.png"),
-      //helpPage: "https://molechess.com/help/index.html",
-      chatArea: ZugChat(client,
+      model,
+      backgroundImage: null, //ZugUtils.getAssetImage("images/molefog1.png"),
+      zugChat: ZugChat(model,
           width: 1000,
           serverName: "Lobby",
+          borderColor: Colors.black,
           defScope: MessageScope.server),
     );
   }
 
   @override
-  Widget createOptionsPage(ZugClient client) {
-    return MoleOptionsPage(client as MoleClient);
+  Widget createOptionsPage(ZugModel model) {
+    return MoleOptionsPage(model as MoleClient);
   }
 
   @override
-  AppBar createAppBar(BuildContext context, ZugClient client, {Widget? txt, Color? color}) {
-    String txt = client.isLoggedIn
-        ? "${_getAppInfo(client as MoleClient)}, user: ${client.userName}, "
-        "game: ${client.currentArea.title.isNotEmpty ? client.currentArea.title : 'none'}"
-        : _getAppInfo(client as MoleClient);
+  AppBar createStatusBar(BuildContext context, ZugModel model, {Widget? txt, Color? color}) {
+    String txt = model.isLoggedIn
+        ? "${_getAppInfo(model as MoleClient)}, user: ${model.userName}, "
+        "game: ${model.currentArea.id.isNotEmpty ? model.currentArea.id : 'none'}"
+        : _getAppInfo(model as MoleClient);
     return AppBar(
         title: Text(txt),
-        foregroundColor: _getAppBarColor(context, client), //blueGrey
-        backgroundColor: client.selectedPage == PageType.main ? Colors.black : Colors.black);
+        foregroundColor: _getAppBarColor(context, model), //blueGrey
+        backgroundColor: model.selectedPage == PageType.main ? Colors.black : Colors.black);
   }
 
   @override
-  BottomNavigationBarItem getMainNavigationBarItem() {
-    return BottomNavigationBarItem(
-      icon: ImageIcon(ZugUtils.getAssetImage("images/mole_pieces/mole_knight_white.png")),
+  NavigationDestination getMainNavigationBarItem() {
+    return NavigationDestination(
+      icon: ImageIcon(ZugUtils.getAssetImage("images/mole_pieces/mole_knight_white.png"), color: Colors.white),
       label: 'Game',
     );
   }

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:chessground/chessground.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
-import 'package:zugclient/zug_client.dart';
+import 'package:zugclient/zug_model.dart';
 import 'main_page.dart';
 import 'mole_client.dart';
 import 'package:chess/chess.dart' as dc;
@@ -22,7 +22,7 @@ class _PlayerHistoryPage extends State<PlayerHistoryPage> {
 
   @override
   void initState() {
-    ZugClient.log.info("Initializing History: ${widget.client.playerHistory["player_data"].toString()}");
+    ZugModel.log.info("Initializing History: ${widget.client.playerHistory["player_data"].toString()}");
     // TODO: implement initState
     super.initState();
 

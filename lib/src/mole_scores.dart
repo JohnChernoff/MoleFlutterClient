@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:mole_app/src/mole_client.dart';
@@ -31,7 +32,7 @@ class _MoleScorePageState extends State<MoleScorePage> {
       Future.delayed(const Duration(seconds: 1)).then((value) {
         for (var i in scoreVars.keys) { scoreVars[i] = getScoreVars(); }
         setState(() { });
-        widget.client.playTrack("mole_score");
+        widget.client.playAudio(AssetSource("mole_score"));
       });
     });
   }

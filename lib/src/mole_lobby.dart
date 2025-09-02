@@ -3,9 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:mole_app/src/mole_client.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/lobby_page.dart';
-import 'package:zugclient/zug_client.dart';
+import 'package:zugclient/zug_area.dart';
 import 'package:zugclient/zug_fields.dart';
 import "package:universal_html/html.dart" as html;
+import 'package:zugclient/zug_model.dart';
 import 'mole_fields.dart';
 
 class MoleLobbyPage extends LobbyPage {
@@ -16,14 +17,18 @@ class MoleLobbyPage extends LobbyPage {
     1: Colors.white
   };
 
-  MoleLobbyPage(super.client, {
+  MoleLobbyPage(super.model, {
     super.areaName ="Mole Game",
+    super.bkgCol = Colors.black,
+    super.buttonsBkgCol = Colors.black,
     super.backgroundImage,
-    super.chatArea,
+    super.zugChat,
+    super.commandAreaWidth = 255,
+    super.commandAreaHeight = 128,
     super.key});
 
   @override
-  Widget selectedArea(BuildContext context,{Color? bkgCol, Color? txtCol}) {
+  Widget selectedArea(BuildContext context, {Color? bkgCol, Color? txtCol, Iterable<dynamic>? occupants}) {
     List<DataRow> rows = _gameRows();
     if (rows.isEmpty) return const SizedBox.shrink();
     return Column(
@@ -41,7 +46,7 @@ class MoleLobbyPage extends LobbyPage {
                 }),
                 headingRowColor:
                     WidgetStateProperty.resolveWith((Set states) {
-                  return Colors.green; //Theme.of(context).colorScheme.onSecondary;
+                  return Colors.white12; //Theme.of(context).colorScheme.onSecondary;
                 }),
                 //headingTextStyle: const TextStyle(color: Colors.yellowAccent),
                 columns: _gameColumns(),
@@ -54,7 +59,7 @@ class MoleLobbyPage extends LobbyPage {
             children: [
               TextButton(
                 onPressed: () {
-                  MoleClient moleClient = client as MoleClient;
+                  MoleClient moleClient = model as MoleClient;
                   moleClient.copyGameLink(moleClient.getCurrentGame());
                 },
                 //icon: const Icon(Icons.copy),
@@ -69,12 +74,12 @@ class MoleLobbyPage extends LobbyPage {
 
   @override
   Widget getAreaItem(String? title,context) {  //print("Title: $title");
-    if (title == null || title == ZugClient.noAreaTitle) return super.getAreaItem(title,context);
-    MoleGame game = (client.areas[title] as MoleGame);
+    if (title == null || title == ZugModel.noAreaTitle) return super.getAreaItem(title,context);
+    MoleGame game = (model.areas[title] as MoleGame);
     return Row(
       children: [
         super.getAreaItem(title,context),
-        super.getAreaItem(getGamePhase(game.listData["phase"]),context),
+        super.getAreaItem(game.getPhaseString(),context),
       ],
     );
   }
@@ -97,28 +102,21 @@ class MoleLobbyPage extends LobbyPage {
     return 0;
   }
 
-  String getGamePhase(String? phase) {
-    if (phase == null) return " (?) ";
-    if (phase.toLowerCase() == GamePhase.pregame.name) return " (open) ";
-    if (phase.toLowerCase() == GamePhase.postgame.name) return " (closing) ";
-    return " (running) ";
-  }
-
-  List<DataColumn> _gameColumns() {
+  List<DataColumn> _gameColumns({txtColor = Colors.white}) {
     return [
-      const DataColumn(label: Text('Player')),
-      const DataColumn(label: Text('Color')),
-      const DataColumn(label: Text('Rating')),
-      const DataColumn(label: Text('Accusing')),
-      const DataColumn(label: Text('Kick')),
+      DataColumn(label: Text('Player',style: TextStyle(color: txtColor))),
+      DataColumn(label: Text('Color',style: TextStyle(color: txtColor))),
+      DataColumn(label: Text('Rating',style: TextStyle(color: txtColor))),
+      DataColumn(label: Text('Accusing',style: TextStyle(color: txtColor))),
+      DataColumn(label: Text('Kick',style: TextStyle(color: txtColor))),
     ];
   }
 
   List<DataRow> _gameRows() {
-    MoleClient moleClient = client as MoleClient;
+    MoleClient moleClient = model as MoleClient;
     MoleGame cg = moleClient.getCurrentGame();
     List<DataRow> rows = List<DataRow>.empty(growable: true);
-    if (!cg.exists) return rows; //print(cg.title); print(cg.occupantMap.values);
+    //if (!cg.exists) return rows; //print(cg.title); print(cg.occupantMap.values);
     List<dynamic> players = [];
     for (dynamic p in cg.occupantMap.values) {
       players.add(p); //print("Adding:  ${p.toString()}");
@@ -129,25 +127,53 @@ class MoleLobbyPage extends LobbyPage {
       Color pColor = HexColor.fromHex(player[fieldChatColor]);
       rows.add(DataRow(cells: [
         DataCell(
-            FittedBox(child:
-            Text(uName.name,textScaler: const TextScaler.linear(1.5), style : TextStyle(backgroundColor: Colors.black, color: pColor)))),
+            FittedBox(child: //DecoratedBox(decoration: getPlayerDecoration(), child:
+            //Text(uName.name,textScaler: const TextScaler.linear(1.5), style : TextStyle(backgroundColor: Colors.black, color: pColor))))),
+            Stack(children: [
+                Text(uName.name,textScaler: const TextScaler.linear(1.5), style : TextStyle(fontFamily: "fixedsys", foreground: Paint(
+                )..style = PaintingStyle.stroke..strokeWidth = 4..color = Colors.black)),
+                Text(uName.name,textScaler: const TextScaler.linear(1.5), style : TextStyle(fontFamily: "fixedsys",color: pColor))
+        ]))),
         DataCell(Container(
             color: colorMap[player["game_col"]],
             margin: const EdgeInsets.all(8),
         )),
         DataCell(Text(player["user"]["blitz"].toString())),
-        DataCell(FittedBox(child: Text(player["votename"]))),
+        DataCell(FittedBox(child: Text(player["votename"] ?? "-"))),
         //DataCell(getIconButton(uName, Icons.where_to_vote,MoleClientMsg.voteoff,cg.title)),
-        DataCell(getIconButton(uName, player["kickable"] ? Icons.remove_circle_outline : Icons.not_interested,MoleClientMsg.kickoff,cg.title)),
+        DataCell(getIconButton(uName, player["kickable"] ? Icons.remove_circle_outline : Icons.not_interested,MoleClientMsg.kickoff,cg.id)),
       ]));
     }
     return rows;
   }
 
+  Decoration getPlayerDecoration() {
+    return BoxDecoration(
+        boxShadow: [
+          BoxShadow(
+            color: Colors.greenAccent,
+            offset: Offset(
+              5.0,
+              5.0,
+            ),
+            blurRadius: 10.0,
+            spreadRadius: 2.0,
+          ), //BoxShadow
+          BoxShadow(
+            color: Colors.white,
+            offset: Offset(0.0, 0.0),
+            blurRadius: 0.0,
+            spreadRadius: 0.0,
+          ), //BoxShadow
+
+        ]
+    );
+  }
+
   IconButton getIconButton(UniqueName targetUniqueName, IconData iconData, Enum action, String title) {
     return IconButton(
         onPressed: () {
-          client.send(action, data: { "player" : targetUniqueName.toJSON(), fieldID : title}); //TODO: deal with authSource
+          model.areaCmd(action, data: { "player" : targetUniqueName.toJSON()}); //TODO: deal with authSource
         },
         icon: Icon(
           iconData,
@@ -157,7 +183,7 @@ class MoleLobbyPage extends LobbyPage {
   //TODO: add this in
   Widget getSocialMediaButtons() {
     return ElevatedButton(
-        style: getButtonStyle(Colors.purple, Colors.purpleAccent),
+        style: getButtonStyle(Colors.purple),
         onPressed: ()  {
           if (kIsWeb) {
             html.window.open("https://discord.gg/ak6d4wagnU", 'new tab');

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:chess/chess.dart' as dc;
 import 'package:chessground/chessground.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
@@ -13,8 +14,9 @@ import 'package:rxdart/rxdart.dart';
 import 'package:zug_utils/zug_dialogs.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/dialogs.dart';
-import 'package:zugclient/zug_client.dart';
+import 'package:zugclient/zug_area.dart';
 import 'package:zugclient/zug_fields.dart';
+import 'package:zugclient/zug_model.dart';
 import 'package:zugclient/zug_option.dart';
 import '../firebase_options.dart';
 import 'package:flutter/services.dart';
@@ -25,16 +27,11 @@ import 'mole_fields.dart';
 class MoleGame extends Area {
 
   String fen = initialFen;
-  dynamic countdown = { //TODO make a class
-    "startTime": 0.0,
-    "timeStamp": 0.0
-  };
   List<dynamic> moves = [];
   List<dynamic> chat = [];
-  bool clockRunning = false;
   PlayerColor? orientation;
 
-  MoleGame(dynamic data) : super(data);
+  MoleGame(super.data);
 
   SideToMove sideToMove() {
     return fen.split(" ")[1] == "w" ? SideToMove.white : SideToMove.black;
@@ -47,6 +44,17 @@ class MoleGame extends Area {
     return colorMap[player[MoleFields.moleFieldSide]];
   }
 
+  String getPhaseString() {
+    if (phase == ZugPhase.undefined) return " (?) ";
+    if (phase == MolePhase.pregame) return " (open) ";
+    if (phase == MolePhase.postgame) return " (closing) ";
+    return " (running) ";
+  }
+
+  @override
+  List<Enum> getPhases() => MolePhase.values;
+
+
 }
 
 class CustomPieceSet {
@@ -56,8 +64,9 @@ class CustomPieceSet {
 }
 
 enum MoleOption {pieceSet,boardColors,streamerMode}
+enum MoleClip {accuse,defect,rampage,bomb,create,doink,moveBlack,moveWhite,vote,roleInspector,roleMole,rolePlayer}
 
-class MoleClient extends ZugClient {
+class MoleClient extends ZugModel {
 
   dc.Chess chess = dc.Chess();
   Map<Enum,Completer> waitMap = {};
@@ -71,17 +80,14 @@ class MoleClient extends ZugClient {
   bool confirmAI = false;
   List<CustomPieceSet> customSets = [];
   ChessBoardController chessBoardController = ChessBoardController();
+  Map<String,AssetSource> clips = {};
 
-  MoleClient(super.domain, super.port, super.remoteEndpoint, super.prefs, {super.localServer}) {
-    clientName = "mole_client";
+  MoleClient(super.domain, super.port, super.remoteEndpoint, super.prefs, {super.javalinServer, super.localServer}) {
+    modelName = "mole_client";
     areaName = "Mole Game";
     addFunctions({
-      //MoleServMsg.status : handleStatus,
-      //MoleServMsg.side : handleSide,
-      ServMsg.updateArea : handleGameUpdate,
       ServMsg.ip : handleIP,
       MoleServMsg.move : handleMove,
-      ServMsg.phase : handlePhase,
       MoleServMsg.role : handleRole,
       MoleServMsg.defection : handleDefection,
       MoleServMsg.rampage : handleRampage,
@@ -97,35 +103,28 @@ class MoleClient extends ZugClient {
     for (var key in getFunctions().keys) {
       waitMap.putIfAbsent(key, () => Completer());
     }
-    //print(waitMap[MoleServMsg.history]);
     loadChessgroundPieceSets();
-    //initFire().then((value) {  //_connect(); } );
-
     loadOptions([
       (MoleOption.pieceSet,ZugOption(customSets.last.name,label: "Piece Set", enums: List.generate(customSets.length, (i) => customSets.elementAt(i).name))),
       (MoleOption.boardColors,ZugOption(BoardColor.green.name,label: "Board Color",enums: List.generate(BoardColor.values.length, (i) => BoardColor.values.elementAt(i).name))),
       (MoleOption.streamerMode,ZugOption(false,label: "Streamer Mode"))
     ]);
+
+    for (MoleClip clip in MoleClip.values) { //print("Loading: ${clip.name}");
+      clips.putIfAbsent(clip.name, () => AssetSource("audio/clips/${clip.name}.mp3"));
+    }
+
+    //print(waitMap[MoleServMsg.history]);
+    //initFire().then((value) {  //_connect(); } );
   }
+
+  getGame(dynamic data) => getOrCreateArea(data) as MoleGame;
 
   void loadChessgroundPieceSets() {
     for (var set in PieceSet.values) {
       customSets.add(CustomPieceSet(set.name, set.assets));
     }
     customSets.add(CustomPieceSet("mole", MoleFields.moleSet));
-  }
-
-  @override
-  void send(Enum type, { var data = "" }) {
-    //ZugClient.log.info("Sending: ${type.name}, data: $data");
-    super.send(type, data: data);
-  }
-
-  @override
-  Enum handleMsg(dynamic msg) {
-    Enum e = super.handleMsg(msg);
-    //ZugClient.log.info("Received: $e");
-    return e;
   }
 
   @override
@@ -155,21 +154,21 @@ class MoleClient extends ZugClient {
 
   @override
   void connected() {
-    ZugClient.log.info("Connected");
+    ZugModel.log.info("Connected");
     super.connected();
     send(MoleClientMsg.version);
     checkRedirect("lichess.org");
   }
 
   @override
-  void handleVersion(data) {
+  void handleVersion(data) { //TODO: why?
     super.handleVersion(data);
     ZugUtils.getIP().then((address) => send(ClientMsg.ip,data: {fieldAddress : address}));
     //send(ClientMsg.ip,data: {fieldAddress : Random().nextInt(255).toString()});
   }
 
   void handleIP(data) {
-    ZugClient.log.info("IP Address: ${data[fieldAddress]}");
+    ZugModel.log.info("IP Address: ${data[fieldAddress]}");
   }
 
   MoleGame getCurrentGame() {
@@ -221,49 +220,6 @@ class MoleClient extends ZugClient {
     }
   }
 
-  Future<void> initFire() async {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-
-    final messaging = FirebaseMessaging.instance;
-
-    final settings = await messaging.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
-
-    if (kDebugMode) {
-      ZugClient.log.info('Permission granted: ${settings.authorizationStatus}');
-    }
-
-    String? token = await messaging.getToken();
-
-    pushToken = token;
-
-    final messageStreamController = BehaviorSubject<RemoteMessage>();
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (kDebugMode) {
-        ZugClient.log.info('Handling a foreground message: ${message.messageId}');
-        ZugClient.log.info('Message data: ${message.data}');
-        ZugClient.log.info('Message notification: ${message.notification?.title}');
-        ZugClient.log.info('Message notification: ${message.notification?.body}');
-      }
-      messageStreamController.sink.add(message);
-      ZugDialogs.popup(message.notification?.body ?? "Unknown notification");
-    });
-
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-    ZugClient.log.info("Finished setting up firebase");
-  }
-
   void getTop(int n) {
     waitMap[MoleServMsg.top] = Completer();
     send(MoleServMsg.top,data: {"n" : n});
@@ -271,7 +227,10 @@ class MoleClient extends ZugClient {
 
   void handleTop(data) { //print("Top: " + data.toString());
     topPlayers = data;
-    waitMap[MoleServMsg.top]?.complete();
+    if (waitMap[MoleServMsg.top]?.isCompleted != true) {
+      waitMap[MoleServMsg.top]?.complete();
+    }
+
   }
 
   void handleFinger(data) {
@@ -290,7 +249,7 @@ class MoleClient extends ZugClient {
   void handlePlayerHistory(data) {
     playerHistory = data;
     if (waitMap[MoleServMsg.history] != null) {
-      ZugClient.log.info("Waiting on history");
+      ZugModel.log.info("Waiting on history");
     }
     waitMap[MoleServMsg.history]?.complete();
   }
@@ -306,11 +265,11 @@ class MoleClient extends ZugClient {
     }
   }
 
-  void handleDefection(data) { //print("Defection: $data");
+  void handleDefection(data) { print("Defection: $data");
     Area game = getOrCreateArea(data);
     if (game is MoleGame && game == currentArea) {
-      playClip("defect");
-      ZugDialogs.popup("${UniqueName.fromData(data[fieldPlayer])} defects!",
+      playClip(MoleClip.defect.name);
+      ZugDialogs.popup("${UniqueName.fromData(data[fieldPlayer][fieldUser])} defects!",
           imgFile: "defection.png");
     }
   }
@@ -318,8 +277,8 @@ class MoleClient extends ZugClient {
   void handleRampage(data) { //print("Rampage: $data");
     Area game = getOrCreateArea(data);
     if (game is MoleGame && game == currentArea) {
-      playClip("rampage");
-      ZugDialogs.popup("${UniqueName.fromData(data[fieldPlayer])} rampages!",
+      playClip(MoleClip.rampage.name);
+      ZugDialogs.popup("${UniqueName.fromData(data[fieldPlayer][fieldUser])} rampages!",
           imgFile: "rampage.png");
     }
   }
@@ -327,13 +286,15 @@ class MoleClient extends ZugClient {
   void handleMolebomb(data) {
     Area game = getOrCreateArea(data);
     if (game is MoleGame && game == currentArea) {
-      playClip("bomb");
+      playClip(MoleClip.bomb.name);
       ZugDialogs.popup("${UniqueName.fromData(data)} bombs!",
           imgFile: "molebomb.png");
     }
   }
 
-
+  void playClip(String n) {
+    if (clips.containsKey(n)) playAudio(clips[n]!,clip: true);
+  }
 
   void handleResult(data) { //TODO: figure out side better
     Area game = getOrCreateArea(data);
@@ -386,49 +347,36 @@ class MoleClient extends ZugClient {
   }
 
   @override
-  void handleJoin(data) { //print("Joining");
-    super.handleJoin(data);
-    handleGameUpdate(data);
-  }
-
-  @override
-  void handlePart(data) { //print("Parting");
-    handleGameUpdate(data); //switchArea(null);
-  }
-
-  void handlePhase(data) {
-    handleGameUpdate(data);
+  bool handleNewPhase(data) { //print("New Phase: $data");
     if (data["phase"] == "POSTGAME") {
       addAreaMsg(
           "Game closing in ${data["timeRemaining"]} seconds",
           data[fieldAreaID]
       );
     }
-    //handleAreaChange({fieldAreaChange : AreaChange.updated, fieldArea : data});
+    return super.handleNewPhase(data);
   }
 
-  void handleMove(data) { //print("New move: ${data['move']}");
-    Area game = getOrCreateArea(data);
-    if (game is MoleGame && game == currentArea) {
-      playClip(game.sideToMove() == SideToMove.black ? "move_black" : "move_white"); //TODO: fix NPE
-      if (data["move_votes"] != null) {
-        if (game.moves.length + 1 == data["ply"]) {
-          game.moves.add(data["move_votes"]);
-          //if (kIsWeb) {  Future.delayed(const Duration(milliseconds: 250)).then((value) => update()); } //TODO: KLUUUUUDGE
-        }
-        else if ((DateTime.timestamp().millisecondsSinceEpoch - lastUpdate) > 5000) {
-          ZugClient.log.info("Inconsistent move history, updating...");
-          send(ServMsg.updateArea,data:game.title);
-        }
+  void handleMove(data) { //print("New Move: ${jsonEncode(data).toString()}");
+    MoleGame game = getGame(data);
+    playClip(game.sideToMove() == SideToMove.black ? "move_black" : "move_white"); //TODO: fix NPE
+    if (data["move_votes"] != null) {
+      if (game.moves.length + 1 == data["ply"]) {
+        game.moves.add(data["move_votes"]);
+        //if (kIsWeb) {  Future.delayed(const Duration(milliseconds: 250)).then((value) => update()); } //TODO: KLUUUUUDGE
+        game.fen = data["move_votes"]["fen"];
+      }
+      else if ((DateTime.timestamp().millisecondsSinceEpoch - lastUpdate) > 5000) {
+        ZugModel.log.info("Inconsistent move history, updating...");
+        areaCmd(ServMsg.updateArea);  //send(ServMsg.updateArea,data:game.title);
       }
     }
   }
 
   void sendMove(String from, String to, String? prom) {
     dc.Move lastMove = chessBoardController.game.history.last.move;
-    ZugClient.log.info("Sending move: ${lastMove.fromAlgebraic}${lastMove.toAlgebraic}");
-    send(MoleServMsg.move,data: {
-      fieldAreaID : currentArea.title,
+    ZugModel.log.info("Sending move: ${lastMove.fromAlgebraic}${lastMove.toAlgebraic}");
+    areaCmd(MoleServMsg.move,data: {  //fieldAreaID : currentArea.title,
       "move" : "${lastMove.fromAlgebraic}${lastMove.toAlgebraic}",
       "promotion" : lastMove.promotion?.name ?? ""
     });
@@ -466,40 +414,23 @@ class MoleClient extends ZugClient {
   }
 
   void handleErrorMessage(data) {
-    final source = areas[data[fieldAreaID]]?.title ?? fieldServ;
     playClip("doink");
-    ZugDialogs.popup("$source: ${data[fieldMsg]}");
+    ZugDialogs.popup("${areas[data[fieldAreaID]]?.id ?? fieldServ}: ${data[fieldMsg]}");
   }
 
-  void handleGameUpdate(data) { print("Game Update: ${jsonEncode(data).toString()}");
+  @override
+  void handleUpdateArea(data) { //print("Game Update: ${jsonEncode(data).toString()}");
     if (data["exists"] != true) return;
-    Area game = getOrCreateArea(data); //print("Game Update: $data");
-    if (game is MoleGame) { //&& game == currentArea) {
-      game.fen = data["currentFEN"] ?? game.fen; //print("Current FEN: ${data["currentFEN"]}");
-      final timeRemaining = double.tryParse(data["timeRemaining"].toString());
-      if (timeRemaining != null && timeRemaining > 0) {
-        game.clockRunning = true; //TODO: move to handleGameStart
-        game.countdown["startTime"] = timeRemaining;
-        game.countdown["timeStamp"] = DateTime.now().millisecondsSinceEpoch.toDouble(); //Android wants all js stuff to be double
-      }
-      if (data["history"] != null) updateMoveHistory(data,game);
-      game.updateOccupants(data);
-    }
-  }
-
-  dynamic getCurrentTime() {
-    MoleGame game = getCurrentGame();
-    double t = game.countdown["startTime"] - ((DateTime.now().millisecondsSinceEpoch - game.countdown["timeStamp"])/1000);
-    double p = t > 0 ? (t/game.countdown["startTime"]) : 0;
-    return {
-      "time" : t,
-      "progress" : p.isFinite ? p : 0
-    };
+    super.handleUpdateArea(data);
+    MoleGame game = getGame(data); //print("Game Update: $data");
+    game.fen = data["currentFEN"] ?? game.fen; //print("Current FEN: ${data["currentFEN"]}");
+    if (data["history"] != null) updateMoveHistory(data,game);
+    game.updateOccupants(data);
   }
 
   void updateMoveHistory(data, MoleGame game) {
     if (data["history"] != null) {
-      ZugClient.log.info("Updating history: ${game.title}");
+      ZugModel.log.info("Updating history: ${game.id}");
       game.moves.clear();
       for (var votes in data["history"]) {
         game.moves.add(votes);
@@ -512,21 +443,62 @@ class MoleClient extends ZugClient {
     send(MoleClientMsg.notify,data: MoleFields.notifications);
   }
 
-//void sendChat(String msg, bool lobby) { send("chat",data: { "msg": msg, "source": lobby ? servString : currentGame.title }); }
-
   void copyGameLink(MoleGame game) {
-    String link = "https://molechess.com?goto=${game.title}";
+    String link = "https://molechess.com?goto=${game.id}";
     Clipboard.setData(ClipboardData(text: link)).then((value) => ZugDialogs.popup("Copied game link to clipboard: $link"));
   }
 
 }
 
+Future<void> initFire() async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  final messaging = FirebaseMessaging.instance;
+
+  final settings = await messaging.requestPermission(
+    alert: true,
+    announcement: false,
+    badge: true,
+    carPlay: false,
+    criticalAlert: false,
+    provisional: false,
+    sound: true,
+  );
+
+  if (kDebugMode) {
+    ZugModel.log.info('Permission granted: ${settings.authorizationStatus}');
+  }
+
+  String? token = await messaging.getToken();
+
+  pushToken = token;
+
+  final messageStreamController = BehaviorSubject<RemoteMessage>();
+
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    if (kDebugMode) {
+      ZugModel.log.info('Handling a foreground message: ${message.messageId}');
+      ZugModel.log.info('Message data: ${message.data}');
+      ZugModel.log.info('Message notification: ${message.notification?.title}');
+      ZugModel.log.info('Message notification: ${message.notification?.body}');
+    }
+    messageStreamController.sink.add(message);
+    ZugDialogs.popup(message.notification?.body ?? "Unknown notification");
+  });
+
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  ZugModel.log.info("Finished setting up firebase");
+}
+
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (kDebugMode) {
-    ZugClient.log.info("Handling a background message: ${message.messageId}");
-    ZugClient.log.info('Message data: ${message.data}');
-    ZugClient.log.info('Message notification: ${message.notification?.title}');
-    ZugClient.log.info('Message notification: ${message.notification?.body}');
+    ZugModel.log.info("Handling a background message: ${message.messageId}");
+    ZugModel.log.info('Message data: ${message.data}');
+    ZugModel.log.info('Message notification: ${message.notification?.title}');
+    ZugModel.log.info('Message notification: ${message.notification?.body}');
   }
   await Firebase.initializeApp();
 }

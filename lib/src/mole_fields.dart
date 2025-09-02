@@ -7,7 +7,7 @@ import 'package:zug_utils/zug_utils.dart';
 enum MoleServMsg {announce,top,history,info,users,moveUpdate,ready,side,confirmMove,voteList,moleBomb,veto,move,rampage,defection,role,startGame,result,version,finger,pgn}
 enum MoleClientMsg {pushToken,notify,top,history,cmd,role,status,veto,draw,resign,kickoff,voteoff,move,abort,inspect,bomb,version,finger,pgn}
 enum PlayerAction {accuse,kick,ban,finger,whisper,cancel}
-enum GamePhase {pregame,voting,veto,postgame}
+enum MolePhase {pregame,voting,veto,postgame}
 
 const kDebugMode = true;
 const noGameTitle = "";
