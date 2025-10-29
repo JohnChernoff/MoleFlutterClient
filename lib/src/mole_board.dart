@@ -7,9 +7,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mole_app/src/mole_dialogs.dart';
 import 'package:zug_utils/zug_dialogs.dart';
 import 'package:zug_utils/zug_utils.dart';
-import 'package:zugclient/zug_area.dart';
 import 'package:zugclient/zug_chat.dart';
 import 'package:zugclient/zug_fields.dart';
+import 'package:zugclient/zug_user.dart';
 import 'main_page.dart';
 import 'mole_client.dart';
 import 'mole_clock.dart';
@@ -114,7 +114,8 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
         widget.client,
         width: (widget.landscape ? null : screenWidth),
         height: screenHeight - (statusHeight ?? 0),
-        serverName: "General",
+        areaName: "Game",
+        serverName: "Lobby",
         borderColor: Colors.grey,
         cmdBkgColor: Colors.brown,
     );

@@ -7,10 +7,10 @@ import 'package:zugclient/zug_area.dart';
 import 'package:zugclient/zug_fields.dart';
 import "package:universal_html/html.dart" as html;
 import 'package:zugclient/zug_model.dart';
+import 'package:zugclient/zug_user.dart';
 import 'mole_fields.dart';
 
 class MoleLobbyPage extends LobbyPage {
-
   final Map<int,Color> colorMap = {
     -1 : Colors.grey,
     0 : Colors.black,
@@ -28,6 +28,13 @@ class MoleLobbyPage extends LobbyPage {
     super.key});
 
   @override
+  List<CommandButtonData> getExtraCmdButtons(BuildContext context) {
+    List<CommandButtonData> extras = super.getExtraCmdButtons(context);
+    extras.add(CommandButtonData("Discord",Colors.purple,Icons.discord,gotoDiscord));
+    return extras;
+  }
+
+  @override
   Widget selectedArea(BuildContext context, {Color? bkgCol, Color? txtCol, Iterable<dynamic>? occupants}) {
     List<DataRow> rows = _gameRows();
     if (rows.isEmpty) return const SizedBox.shrink();
@@ -42,7 +49,7 @@ class MoleLobbyPage extends LobbyPage {
                 dividerThickness: 2,
                 columnSpacing: 16,
                 dataRowColor: WidgetStateProperty.resolveWith((Set states) {
-                  return Colors.grey; //Theme.of(context).colorScheme.inversePrimary;
+                  return Color(0xFF2a3a4a) ; //Theme.of(context).colorScheme.inversePrimary;
                 }),
                 headingRowColor:
                     WidgetStateProperty.resolveWith((Set states) {
@@ -116,58 +123,75 @@ class MoleLobbyPage extends LobbyPage {
     MoleClient moleClient = model as MoleClient;
     MoleGame cg = moleClient.getCurrentGame();
     List<DataRow> rows = List<DataRow>.empty(growable: true);
-    //if (!cg.exists) return rows; //print(cg.title); print(cg.occupantMap.values);
+
     List<dynamic> players = [];
     for (dynamic p in cg.occupantMap.values) {
-      players.add(p); //print("Adding:  ${p.toString()}");
+      players.add(p);
     }
     players.sort((a, b) => a[MoleFields.moleFieldSide].compareTo(b[MoleFields.moleFieldSide]));
-    for (dynamic player in players) { //print("Player: $player");
+
+    for (dynamic player in players) {
       UniqueName uName = UniqueName.fromData(player[fieldUser]);
       Color pColor = HexColor.fromHex(player[fieldChatColor]);
+
       rows.add(DataRow(cells: [
         DataCell(
-            FittedBox(child: //DecoratedBox(decoration: getPlayerDecoration(), child:
-            //Text(uName.name,textScaler: const TextScaler.linear(1.5), style : TextStyle(backgroundColor: Colors.black, color: pColor))))),
-            Stack(children: [
-                Text(uName.name,textScaler: const TextScaler.linear(1.5), style : TextStyle(fontFamily: "fixedsys", foreground: Paint(
-                )..style = PaintingStyle.stroke..strokeWidth = 4..color = Colors.black)),
-                Text(uName.name,textScaler: const TextScaler.linear(1.5), style : TextStyle(fontFamily: "fixedsys",color: pColor))
-        ]))),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Colored avatar circle
+              Container(
+                width: 24,
+                height: 24,
+                margin: const EdgeInsets.only(right: 12),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: pColor,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+              ),
+              // Player name with shadow
+              Flexible(
+                child: Text(
+                  uName.name,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontFamily: "fixedsys",
+                    fontSize: 15,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withOpacity(0.8),
+                        offset: const Offset(1, 1),
+                        blurRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         DataCell(Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
             color: colorMap[player["game_col"]],
-            margin: const EdgeInsets.all(8),
+            border: Border.all(color: Colors.white, width: 1),
+          ),
         )),
-        DataCell(Text(player["user"]["blitz"].toString())),
-        DataCell(FittedBox(child: Text(player["votename"] ?? "-"))),
-        //DataCell(getIconButton(uName, Icons.where_to_vote,MoleClientMsg.voteoff,cg.title)),
-        DataCell(getIconButton(uName, player["kickable"] ? Icons.remove_circle_outline : Icons.not_interested,MoleClientMsg.kickoff,cg.id)),
+        DataCell(Text(
+          player["user"]["blitz"].toString(),
+          style: const TextStyle(color: Colors.white),
+        )),
+        DataCell(Text(
+          player["votename"] ?? "-",
+          style: const TextStyle(color: Colors.white),
+        )),
+        DataCell(getIconButton(uName, player["kickable"] ? Icons.remove_circle_outline : Icons.not_interested, MoleClientMsg.kickoff, cg.id)),
       ]));
     }
     return rows;
-  }
-
-  Decoration getPlayerDecoration() {
-    return BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.greenAccent,
-            offset: Offset(
-              5.0,
-              5.0,
-            ),
-            blurRadius: 10.0,
-            spreadRadius: 2.0,
-          ), //BoxShadow
-          BoxShadow(
-            color: Colors.white,
-            offset: Offset(0.0, 0.0),
-            blurRadius: 0.0,
-            spreadRadius: 0.0,
-          ), //BoxShadow
-
-        ]
-    );
   }
 
   IconButton getIconButton(UniqueName targetUniqueName, IconData iconData, Enum action, String title) {
@@ -180,18 +204,12 @@ class MoleLobbyPage extends LobbyPage {
         ));
   }
 
-  //TODO: add this in
-  Widget getSocialMediaButtons() {
-    return ElevatedButton(
-        style: getButtonStyle(Colors.purple),
-        onPressed: ()  {
-          if (kIsWeb) {
-            html.window.open("https://discord.gg/ak6d4wagnU", 'new tab');
-          } else {
-            ZugUtils.launch("https://discord.gg/ak6d4wagnU", isNewTab: true);
-          }
-        },
-        child: Text("Discord",style: getButtonTextStyle()));
+  void gotoDiscord() {
+    if (kIsWeb) {
+      html.window.open("https://discord.gg/ak6d4wagnU", 'new tab');
+    } else {
+      ZugUtils.launch("https://discord.gg/ak6d4wagnU", isNewTab: true);
+    }
   }
 
 }

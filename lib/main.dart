@@ -13,7 +13,6 @@ import 'package:zugclient/zug_model.dart';
 
 //TODO: coordinates option, music/sound, help, option descriptions
 //autologin for lichess, etc. (use prefs)
-//obvious game link button
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,12 +42,13 @@ class MoleApp extends ZugApp {
     return "MoleClient Ver. ${client.packageInfo?.version ?? '?'}, Server Ver. ${client.serverVersion} ";
   }
 
-  Color _getAppBarColor(BuildContext context, ZugModel client) {
-    return switch(client.selectedPage) {
+  Color _getAppBarColor(BuildContext context, MoleClient client) {
+    return switch(client.currentPage) {
       PageType.main => Colors.grey, //blueGrey,
       PageType.lobby => Colors.greenAccent, //Colors.brown,
       PageType.options => Colors.blue,
       PageType.none => Colors.white,
+      PageType.splash => Colors.black,
     };
   }
 
@@ -69,6 +69,7 @@ class MoleApp extends ZugApp {
       backgroundImage: null, //ZugUtils.getAssetImage("images/molefog1.png"),
       zugChat: ZugChat(model,
           width: 1000,
+          areaName: "Game",
           serverName: "Lobby",
           borderColor: Colors.black,
           defScope: MessageScope.server),
@@ -89,7 +90,7 @@ class MoleApp extends ZugApp {
     return AppBar(
         title: Text(txt),
         foregroundColor: _getAppBarColor(context, model), //blueGrey
-        backgroundColor: model.selectedPage == PageType.main ? Colors.black : Colors.black);
+        backgroundColor: model.currentPage == PageType.main ? Colors.black : Colors.black);
   }
 
   @override

@@ -18,6 +18,7 @@ import 'package:zugclient/zug_area.dart';
 import 'package:zugclient/zug_fields.dart';
 import 'package:zugclient/zug_model.dart';
 import 'package:zugclient/zug_option.dart';
+import 'package:zugclient/zug_user.dart';
 import '../firebase_options.dart';
 import 'package:flutter/services.dart';
 import 'mole_fields.dart';
@@ -53,7 +54,6 @@ class MoleGame extends Area {
 
   @override
   List<Enum> getPhases() => MolePhase.values;
-
 
 }
 
@@ -265,7 +265,7 @@ class MoleClient extends ZugModel {
     }
   }
 
-  void handleDefection(data) { print("Defection: $data");
+  void handleDefection(data) { //print("Defection: $data");
     Area game = getOrCreateArea(data);
     if (game is MoleGame && game == currentArea) {
       playClip(MoleClip.defect.name);
@@ -361,6 +361,7 @@ class MoleClient extends ZugModel {
     MoleGame game = getGame(data);
     playClip(game.sideToMove() == SideToMove.black ? "move_black" : "move_white"); //TODO: fix NPE
     if (data["move_votes"] != null) {
+      //print("${game.moves.length}: ${data["ply"]}");
       if (game.moves.length + 1 == data["ply"]) {
         game.moves.add(data["move_votes"]);
         //if (kIsWeb) {  Future.delayed(const Duration(milliseconds: 250)).then((value) => update()); } //TODO: KLUUUUUDGE
@@ -368,7 +369,7 @@ class MoleClient extends ZugModel {
       }
       else if ((DateTime.timestamp().millisecondsSinceEpoch - lastUpdate) > 5000) {
         ZugModel.log.info("Inconsistent move history, updating...");
-        areaCmd(ServMsg.updateArea);  //send(ServMsg.updateArea,data:game.title);
+        areaCmd(MoleClientMsg.moveHistory);
       }
     }
   }
