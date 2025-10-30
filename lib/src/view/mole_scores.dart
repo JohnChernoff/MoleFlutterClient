@@ -1,14 +1,14 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
-import 'package:mole_app/src/mole_client.dart';
+import '../mole_model.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_fields.dart';
-import 'main_page.dart';
+import '../main_page.dart';
 import 'dart:math' as math;
 
 class MoleScorePage extends StatefulWidget {
-  final MoleClient client;
+  final MoleModel client;
   final List<Widget> buttons;
   const MoleScorePage(this.client,this.buttons,{super.key});
 

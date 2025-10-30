@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:zugclient/options_page.dart';
-import 'mole_client.dart';
+import 'mole_model.dart';
 import 'mole_fields.dart';
 
 class MoleOptionsPage extends StatefulWidget {
-  final MoleClient client;
+  final MoleModel client;
 
   const MoleOptionsPage(this.client, {super.key});
 

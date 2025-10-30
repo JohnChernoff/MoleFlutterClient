@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:mole_app/src/main_page.dart';
-import 'package:mole_app/src/mole_client.dart';
+import 'package:mole_app/src/mole_model.dart';
 import 'package:mole_app/src/mole_lobby.dart';
 import 'package:mole_app/src/mole_options.dart';
 import 'package:zug_utils/zug_utils.dart';
@@ -23,7 +23,7 @@ void main() {
       String endPoint = defaults["endpoint"] ?? "molesrv";
       bool localServer = bool.parse(defaults["localServer"] ?? "true");
       log("Starting Mole Client, domain: $domain, port: $port, endpoint: $endPoint, localServer: $localServer");
-      MoleClient client = MoleClient(domain, port, endPoint,localServer : localServer, javalinServer: true, prefs); //TODO: add default sound setting
+      MoleModel client = MoleModel(domain, port, endPoint,localServer : localServer, javalinServer: true, prefs); //TODO: add default sound setting
       runApp(MoleApp(client,"MoleChess"));
     });
   });
@@ -38,11 +38,11 @@ class MoleApp extends ZugApp {
     super.key
   });
 
-  String _getAppInfo(MoleClient client) {
+  String _getAppInfo(MoleModel client) {
     return "MoleClient Ver. ${client.packageInfo?.version ?? '?'}, Server Ver. ${client.serverVersion} ";
   }
 
-  Color _getAppBarColor(BuildContext context, MoleClient client) {
+  Color _getAppBarColor(BuildContext context, MoleModel client) {
     return switch(client.currentPage) {
       PageType.main => Colors.grey, //blueGrey,
       PageType.lobby => Colors.greenAccent, //Colors.brown,
@@ -59,7 +59,7 @@ class MoleApp extends ZugApp {
 
   @override
   Widget createMainPage(ZugModel model) {
-    return MainMolePage(model as MoleClient);
+    return MainMolePage(model as MoleModel);
   }
 
   @override
@@ -78,15 +78,15 @@ class MoleApp extends ZugApp {
 
   @override
   Widget createOptionsPage(ZugModel model) {
-    return MoleOptionsPage(model as MoleClient);
+    return MoleOptionsPage(model as MoleModel);
   }
 
   @override
   AppBar createStatusBar(BuildContext context, ZugModel model, {Widget? txt, Color? color}) {
     String txt = model.isLoggedIn
-        ? "${_getAppInfo(model as MoleClient)}, user: ${model.userName}, "
+        ? "${_getAppInfo(model as MoleModel)}, user: ${model.userName}, "
         "game: ${model.currentArea.id.isNotEmpty ? model.currentArea.id : 'none'}"
-        : _getAppInfo(model as MoleClient);
+        : _getAppInfo(model as MoleModel);
     return AppBar(
         title: Text(txt),
         foregroundColor: _getAppBarColor(context, model), //blueGrey

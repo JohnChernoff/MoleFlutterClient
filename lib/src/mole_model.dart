@@ -66,7 +66,7 @@ class CustomPieceSet {
 enum MoleOption {pieceSet,boardColors,streamerMode}
 enum MoleClip {accuse,defect,rampage,bomb,create,doink,moveBlack,moveWhite,vote,roleInspector,roleMole,rolePlayer}
 
-class MoleClient extends ZugModel {
+class MoleModel extends ZugModel {
 
   dc.Chess chess = dc.Chess();
   Map<Enum,Completer> waitMap = {};
@@ -82,7 +82,7 @@ class MoleClient extends ZugModel {
   ChessBoardController chessBoardController = ChessBoardController();
   Map<String,AssetSource> clips = {};
 
-  MoleClient(super.domain, super.port, super.remoteEndpoint, super.prefs, {super.javalinServer, super.localServer}) {
+  MoleModel(super.domain, super.port, super.remoteEndpoint, super.prefs, {super.javalinServer, super.localServer}) {
     modelName = "mole_client";
     areaName = "Mole Game";
     addFunctions({

@@ -4,7 +4,7 @@ import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_area.dart';
 import 'package:zugclient/zug_fields.dart';
 import 'package:zugclient/zug_user.dart';
-import 'mole_client.dart';
+import 'mole_model.dart';
 import 'mole_fields.dart';
 
 class TimeSelectDialogOptions extends StatelessWidget {

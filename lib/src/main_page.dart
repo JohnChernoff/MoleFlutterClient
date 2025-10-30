@@ -1,17 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:zug_utils/zug_utils.dart';
-import 'mole_board.dart';
-import 'mole_client.dart';
+import 'view/mole_board.dart';
+import 'mole_model.dart';
 import 'package:flutter/material.dart';
 import 'mole_fields.dart';
 import 'mole_history.dart';
-import 'mole_scores.dart';
+import 'view/mole_scores.dart';
 
 enum MainPages { currentBoard,scorePage, historyPage }
 
 class MainMolePage extends StatefulWidget {
   static const double headerHeight = 36;
-  final MoleClient client;
+  final MoleModel client;
   const MainMolePage(this.client, {super.key});
 
   @override

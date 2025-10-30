@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:mole_app/src/mole_client.dart';
+import 'mole_model.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/lobby_page.dart';
 import 'package:zugclient/zug_area.dart';
@@ -66,7 +66,7 @@ class MoleLobbyPage extends LobbyPage {
             children: [
               TextButton(
                 onPressed: () {
-                  MoleClient moleClient = model as MoleClient;
+                  MoleModel moleClient = model as MoleModel;
                   moleClient.copyGameLink(moleClient.getCurrentGame());
                 },
                 //icon: const Icon(Icons.copy),
@@ -120,7 +120,7 @@ class MoleLobbyPage extends LobbyPage {
   }
 
   List<DataRow> _gameRows() {
-    MoleClient moleClient = model as MoleClient;
+    MoleModel moleClient = model as MoleModel;
     MoleGame cg = moleClient.getCurrentGame();
     List<DataRow> rows = List<DataRow>.empty(growable: true);
 
