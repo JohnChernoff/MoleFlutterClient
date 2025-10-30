@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart' hide Color;
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mole_app/src/mole_dialogs.dart';
+import 'package:mole_app/src/vote_list.dart';
 import 'package:zug_utils/zug_dialogs.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_chat.dart';
@@ -41,6 +42,7 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
   ScrollController moveListController = ScrollController();
   FToast toast = FToast();
   int selectedPly = 0;
+  Map<String,dynamic> displayedVotes = {};
 
   bool _onKey(KeyEvent event) {
     final key = event.logicalKey.keyLabel;
@@ -53,6 +55,12 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
       }
     }
     return false;
+  }
+
+  void showToast(Map<String,dynamic> votes) {
+    setState(() {
+      displayedVotes = votes;
+    });
   }
 
   void setHistoryPly(int ply) {
@@ -73,10 +81,11 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
             : "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   }
 
-  void setHistorySnapshot(Map<String,dynamic> votes, String? fen) { //print("Hovering: $fen");
+  void setHistorySnapshot(Map<String,dynamic> votes, String? fen) {
     historySnapshot = votes;
     hoverFEN = fen;
-    if (mounted) setState(() { /* update history */  }); //if (kIsWeb) {  Future.delayed(const Duration(milliseconds: 50)).then((value) => widget.client.update()); }
+    displayedVotes = votes; // Update displayed votes
+    if (mounted) setState(() { /* update history */ });
   }
 
   @override
@@ -93,68 +102,77 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
     widget.client.chessBoardController.loadFen(hoverFEN ?? cg.fen);
 
     if (hoverFEN == null) {
-      ZugUtils.scrollDown(moveListController,250,delay : 750);
+      ZugUtils.scrollDown(moveListController, 250, delay: 750);
       selectedPly = cg.moves.length;
     }
 
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = ZugUtils.getActualScreenHeight(context);
-    double boardSize = widget.landscape ? (screenHeight - MainMolePage.headerHeight) : screenWidth;
-    double? statusHeight = widget.landscape ? max(clockSize,(screenHeight / 4)) : null;
+    double boardSize = widget.landscape
+        ? (screenHeight - MainMolePage.headerHeight)
+        : screenWidth;
+    double? statusHeight =
+    widget.landscape ? max(clockSize, (screenHeight / 4)) : null;
 
     Container statBox = Container(
-      decoration: ZugChat.getDecoration(color: Colors.brown, borderWidth: widget.landscape ? 0 : 4),
+      decoration: ZugChat.getDecoration(
+          color: Colors.brown, borderWidth: widget.landscape ? 0 : 4),
       height: statusHeight,
       child: getStatusWidget(cg,
-          widget.landscape ? screenWidth - (boardSize + (moveListWidth * 2)) : boardSize,
-          statusHeight ?? clockSize,historySnapshot),
+          widget.landscape
+              ? screenWidth - (boardSize + (moveListWidth * 2))
+              : boardSize,
+          statusHeight ?? clockSize,
+          historySnapshot),
     );
 
-    final Widget chatBox = ZugChat(
-        widget.client,
-        width: (widget.landscape ? null : screenWidth),
-        height: screenHeight - (statusHeight ?? 0),
-        areaName: "Game",
-        serverName: "Lobby",
-        borderColor: Colors.grey,
-        cmdBkgColor: Colors.brown,
+    // Show vote display if votes are being displayed, otherwise show chat
+    final Widget chatOrVotes = displayedVotes.isNotEmpty
+        ? buildVoteDisplay(displayedVotes, screenWidth, screenHeight)
+        : ZugChat(
+      widget.client,
+      width: (widget.landscape ? null : screenWidth),
+      height: screenHeight - (statusHeight ?? 0),
+      areaName: "Game",
+      serverName: "Lobby",
+      borderColor: Colors.grey,
+      cmdBkgColor: Colors.brown,
     );
 
     return widget.landscape
         ? Row(
+      children: [
+        westSide(cg, screenWidth, boardSize, const SizedBox.shrink()),
+        Expanded(
+          child: Column(
             children: [
-              westSide(cg, screenWidth, boardSize, const SizedBox.shrink()),
-              Expanded(
-                  child: Column(
-                children: [
-                  Expanded(child: chatBox),
-                  statBox,
-                ],
-              ))
+              Expanded(child: chatOrVotes),
+              statBox,
             ],
-          )
+          ),
+        )
+      ],
+    )
         : ListView(
-            scrollDirection: Axis.horizontal,
-            children: [westSide(cg, screenWidth, boardSize, statBox), chatBox],
-          );
+      scrollDirection: Axis.horizontal,
+      children: [westSide(cg, screenWidth, boardSize, statBox), chatOrVotes],
+    );
   }
 
   Widget westSide(MoleGame cg, double screenWidth, double boardSize, Widget footer) {
     Container header = Container(
-        color: Colors.black,
-        width: screenWidth,
-        height: widget.landscape ? null : MainMolePage.headerHeight,
-        child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: widget.headerButtons
-        )
+      color: Colors.black,
+      width: screenWidth,
+      height: widget.landscape ? null : MainMolePage.headerHeight,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: widget.headerButtons,
+      ),
     );
     return Container(
-      color: Colors.black, //widget.backgroundColor,
+      color: Colors.black,
       width: boardSize + (widget.landscape ? moveListWidth * 2 : 0),
       child: Column(
-        //mainAxisAlignment: MainAxisAlignment.start,
-        //crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Divider(height: 2),
           widget.landscape ? Expanded(child: header) : header,
@@ -162,14 +180,17 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
             direction: widget.landscape ? Axis.horizontal : Axis.vertical,
             children: [
               MouseRegion(
-                  onExit: (e) {
-                    if ((widget.client.prefs?.getBool("movelist_hover") ?? false) && historySnapshot.isNotEmpty) {
-                      setHistorySnapshot({},null);
-                    }
-                  },
-                  child: getMoveList(boardSize)
+                onExit: (e) {
+                  if ((widget.client.prefs?.getBool("movelist_hover") ?? false) && historySnapshot.isNotEmpty) {
+                    setHistorySnapshot({}, null);
+                  }
+                  setState(() {
+                    displayedVotes = {};
+                  });
+                },
+                child: getMoveList(boardSize),
               ),
-              getBoard(cg,boardSize),
+              getBoard(cg, boardSize),
             ],
           ),
           widget.landscape ? footer : Expanded(child: footer),
@@ -221,56 +242,34 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
     );
   }
 
+// Update getMoveBox to remove toast on exit
   Widget getMoveBox(int ply) {
     MoleGame cg = widget.client.getCurrentGame();
     Map<String,dynamic>? votes = (ply >= 0 && ply < cg.moves.length) ? cg.moves[ply] : null;
     Color txtColor = selectedPly == ply ? Colors.green : Colors.white;
     return Container(
-        decoration: ZugChat.getDecoration(color: Colors.black),
-        width: moveListWidth,
-        height: moveListHeight,
-        child: Center(child: TextButton(
-            onHover: (b) {
-                if (b && votes != null) {
-                  showToast(votes);
-                } else {
-                  toast.removeCustomToast();
-                  toast.removeQueuedCustomToasts();
-                }
-              },
-              onPressed: () => setHistoryPly(ply),
-            child: votes == null
-                ? Icon(Icons.refresh,color: txtColor) //const Text("*",style: TextStyle(color: Colors.white))
-                : Text(votes["selected"]["move"]["san"] ?? "?",style: TextStyle(color: txtColor))),
-        ));
-  }
-
-  void showToast(Map<String,dynamic> votes) {
-    Widget toastTxt = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25.0),
-        color: Colors.greenAccent,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: parseMoveVotes(votes,txtColor: Colors.black),
+      decoration: ZugChat.getDecoration(color: Colors.black),
+      width: moveListWidth,
+      height: moveListHeight,
+      child: Center(
+        child: TextButton(
+          onHover: (b) {
+            if (b && votes != null) {
+              showToast(votes);
+            } else {
+              setState(() {
+                displayedVotes = {};
+              });
+            }
+          },
+          onPressed: () => setHistoryPly(ply),
+          child: votes == null
+              ? Icon(Icons.refresh, color: txtColor)
+              : Text(votes["selected"]["move"]["san"] ?? "?",
+              style: TextStyle(color: txtColor)),
+        ),
       ),
     );
-
-    // Custom Toast Position
-    toast.showToast(
-        child: toastTxt,
-        toastDuration: const Duration(seconds: 2),
-        gravity: ToastGravity.SNACKBAR,
-      );
-    //        positionedToastBuilder: (context, child) {
-    //           return Positioned(
-    //             top: 16.0,
-    //             left: 16.0,
-    //             child: child,
-    //           );
-    //         }
   }
 
   List<BoardArrow> getArrows(Map<String,dynamic> votes) { //print("Votes: ${votes.toString()}");
@@ -333,27 +332,7 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
     );
   }
 
-  List<Widget> parseMoveVotes(Map<String,dynamic> votes, {Color? txtColor}) {
-    List<Widget> voteList = [];
-    if (votes.isNotEmpty) { //print(hoverVotes);
-      voteList.add(
-          Text("${UniqueName.fromData(votes['selected'][fieldPlayer][fieldUser])}: ${votes['selected']['move']['san']}",
-              style: TextStyle(color: txtColor ?? HexColor.fromHex(votes['selected'][fieldPlayer][fieldChatColor])))
-      );
-      if (votes['alts'] != null) {
-        for (Map<String,dynamic> alt in votes['alts']) {
-          voteList.add(
-              Text("${UniqueName.fromData(alt[fieldPlayer][fieldUser])}: ${alt['move']['san']}",
-                  style: TextStyle(color: txtColor ?? HexColor.fromHex(alt[fieldPlayer][fieldChatColor])))
-          );
-        }
-      }
-    }
-    return voteList;
-  }
-
   Widget getStatusWidget(MoleGame cg, double width, double height, Map<String,dynamic> hoverVotes) {
-    List<Widget> hoverMoves = parseMoveVotes(hoverVotes); //double w = ((width - (widget.landscape ? moveListWidth : 0)) - (clock?.width ?? 0))/2;
     double w = (width - (clock?.width ?? 0))/2;
     return Row( //crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -363,23 +342,15 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
             //mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Container(
-                color: hoverMoves.isEmpty ? Colors.white : Colors.black,
+                color: Colors.white,
                 width: w,
                 height: height,
-                child: hoverMoves.isEmpty
-                    ? getPlaylist(PlayerColor.white)
-                    : const SizedBox.shrink(),
-              ),
+                child: getPlaylist(PlayerColor.white)),
               Container(
                   color: Colors.black,
                   width: w,
                   height: height,
-                  child: hoverMoves.isEmpty
-                      ? getPlaylist(PlayerColor.black)
-                      : Center(
-                          child: ListView(
-                              scrollDirection: Axis.vertical,
-                              children: hoverMoves))),
+                  child: getPlaylist(PlayerColor.black)),
             ]),
       ),
       cg.inPhase() ? clock ?? const SizedBox.shrink() : const SizedBox.shrink(),
