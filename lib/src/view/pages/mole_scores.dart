@@ -1,10 +1,10 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
-import '../mole_model.dart';
+import '../../model/mole_model.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_fields.dart';
-import '../main_page.dart';
+import 'main_page.dart';
 import 'dart:math' as math;
 
 class MoleScorePage extends StatefulWidget {

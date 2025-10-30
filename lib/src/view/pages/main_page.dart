@@ -1,11 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:zug_utils/zug_utils.dart';
-import 'view/mole_board.dart';
-import 'mole_model.dart';
+import 'game_page.dart';
+import '../../model/mole_model.dart';
 import 'package:flutter/material.dart';
-import 'mole_fields.dart';
+import '../../model/mole_fields.dart';
 import 'mole_history.dart';
-import 'view/mole_scores.dart';
+import 'mole_scores.dart';
 
 enum MainPages { currentBoard,scorePage, historyPage }
 
@@ -26,10 +26,10 @@ class MainMolePageState extends State<MainMolePage> {
     final double screenWidth = MediaQuery.of(context).size.width;
     final double screenHeight = ZugUtils.getActualScreenHeight(context);
     final bool landscape = screenWidth > screenHeight;
-    final Widget board = CurrentBoardWidget(widget.client,getBoardHeaderButtons(landscape ? screenHeight : screenWidth),landscape);
+    final Widget gamePage = CurrentGameWidget(widget.client,getBoardHeaderButtons(landscape ? screenHeight : screenWidth),landscape);
 
     return switch (page) {
-        MainPages.currentBoard => board, //TODO: scrollController
+        MainPages.currentBoard => gamePage, //TODO: scrollController
         MainPages.scorePage => MoleScorePage(widget.client,getBoardHeaderButtons(screenWidth)),
         MainPages.historyPage => PlayerHistoryPage(widget.client,getBoardHeaderButtons(screenWidth))
       };

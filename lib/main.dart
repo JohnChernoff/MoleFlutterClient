@@ -1,9 +1,9 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:mole_app/src/main_page.dart';
-import 'package:mole_app/src/mole_model.dart';
-import 'package:mole_app/src/mole_lobby.dart';
-import 'package:mole_app/src/mole_options.dart';
+import 'package:mole_app/src/view/pages/main_page.dart';
+import 'package:mole_app/src/model/mole_model.dart';
+import 'package:mole_app/src/view/pages/mole_lobby.dart';
+import 'package:mole_app/src/view/pages/mole_options.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_app.dart';
 import 'package:logging/logging.dart';

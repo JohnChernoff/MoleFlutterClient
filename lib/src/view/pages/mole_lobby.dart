@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'mole_model.dart';
+import '../../model/mole_model.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/lobby_page.dart';
 import 'package:zugclient/zug_area.dart';
@@ -8,7 +8,7 @@ import 'package:zugclient/zug_fields.dart';
 import "package:universal_html/html.dart" as html;
 import 'package:zugclient/zug_model.dart';
 import 'package:zugclient/zug_user.dart';
-import 'mole_fields.dart';
+import '../../model/mole_fields.dart';
 
 class MoleLobbyPage extends LobbyPage {
   final Map<int,Color> colorMap = {

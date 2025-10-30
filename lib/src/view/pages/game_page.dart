@@ -3,38 +3,37 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart' hide Color;
-import 'package:mole_app/src/mole_dialogs.dart';
-import 'package:mole_app/src/view/vote_list.dart';
+import 'package:mole_app/src/view/components/mole_dialogs.dart';
+import 'package:mole_app/src/view/components/vote_list.dart';
 import 'package:zug_utils/zug_dialogs.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_chat.dart';
 import 'package:zugclient/zug_fields.dart';
 import 'package:zugclient/zug_user.dart';
-import '../main_page.dart';
-import '../mole_model.dart';
-import 'mole_clock.dart';
-import '../mole_fields.dart';
+import 'main_page.dart';
+import '../../model/mole_model.dart';
+import '../components/mole_clock.dart';
+import '../../model/mole_fields.dart';
 
-class CurrentBoardWidget extends StatefulWidget {
+class CurrentGameWidget extends StatefulWidget {
   final MoleModel client;
   final List<Widget> headerButtons;
   final Color backgroundColor, foregroundColor;
   final bool landscape;
   final bool hoverMode = false;
 
-  const CurrentBoardWidget(this.client, this.headerButtons, this.landscape, {
+  const CurrentGameWidget(this.client, this.headerButtons, this.landscape, {
     this.foregroundColor = Colors.greenAccent,
     this.backgroundColor = Colors.black,
     super.key});
 
   @override
-  State<StatefulWidget> createState() => CurrentBoardState();
+  State<StatefulWidget> createState() => CurrentGameState();
 }
 
-class CurrentBoardState extends State<CurrentBoardWidget> {
+class CurrentGameState extends State<CurrentGameWidget> {
   final ChessBoardController chessBoardController = ChessBoardController();
   ChessClock? clock;
-  double clockSize = 100;
   double moveListWidth = 72; //kIsWeb ? 72 : 50; //TODO: landscape mobile
   double moveListHeight = kIsWeb ? 32 : 48;
   Map<String,dynamic> historySnapshot = {};
@@ -85,7 +84,7 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
   @override
   void initState() {
     super.initState();
-    clock = ChessClock(widget.client,clockSize,clockSize,Colors.brown);
+    clock = ChessClock(widget.client, 100, 100, Colors.brown);
     ServicesBinding.instance.keyboard.addHandler(_onKey);
   }
 
@@ -93,7 +92,6 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
   Widget build(BuildContext context) { //toast.init(context);
     final MoleGame cg = widget.client.getCurrentGame();
     widget.client.chessBoardController.loadFen(hoverFEN ?? cg.fen);
-
     //if (hoverFEN == null) { ZugUtils.scrollDown(moveListController, 250, delay: 750); selectedPly = cg.moves.length; }
 
     return widget.landscape
@@ -108,6 +106,7 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
       double eastWidth = bc.maxWidth - (boardSize + (moveListWidth * 2));
       double statusHeight = boardSize / 4;
       bool statusUnderBoard = false;
+
 
       if (eastWidth < 480) {
          boardSize -= statusHeight;
@@ -125,14 +124,27 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
         ),
       );
 
+      double topMargin = 1;
       final Widget statBox = Container(
-        decoration: ZugChat.getDecoration(color: Colors.brown, borderWidth: 0),
+        margin: EdgeInsets.only(top: topMargin),
+        decoration: BoxDecoration(
+          color: Colors.brown,
+          border: Border.symmetric(vertical: BorderSide(color: Colors.grey[800]!, width: 2)),
+          borderRadius: BorderRadius.circular(8),
+        ),
         width: statusUnderBoard ? boardSize : eastWidth,
-        height: statusHeight,
-        child: getStatusWidget(cg, statusUnderBoard ? boardSize : eastWidth, statusHeight, historySnapshot),
+        height: statusHeight - topMargin,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: getStatusWidget(cg,
+              statusUnderBoard ? boardSize : eastWidth,
+              statusHeight - topMargin,
+              historySnapshot),
+        ),
       );
 
-      final Widget chatOrVotes = displayedVotes.isNotEmpty
+      final Widget chatOrVotes = //Padding(padding: EdgeInsets.only(right: 4, top: 4), child:
+      displayedVotes.isNotEmpty
           ? VoteList(displayedVotes, eastWidth, bc.maxHeight)
           : ZugChat(
         widget.client,
@@ -166,7 +178,7 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
             child: Column(
               children: [
                 Expanded(child: chatOrVotes),
-                if (!statusUnderBoard) statBox,
+                if (!statusUnderBoard) statBox, //Padding(padding: EdgeInsets.only(top: 4, left: 0, right: 4), child: statBox),
               ],
             ),
           )
@@ -178,27 +190,25 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
   Widget buildPortrait(MoleGame cg, BuildContext context) {
     return LayoutBuilder(builder: (BuildContext ctx, BoxConstraints bc) {
 
-      final Widget statBox = Container(
-        decoration: ZugChat.getDecoration(color: Colors.brown, borderWidth: 4),
+      final Widget statBox = Container( //decoration: ZugChat.getDecoration(color: Colors.brown, borderWidth: 4),
+        color: Colors.brown,
         child: getStatusWidget(cg, bc.maxWidth, 128, historySnapshot),
       );
 
-      final Widget chatOrVotes = displayedVotes.isNotEmpty
+      final Widget chatOrVotes =  displayedVotes.isNotEmpty
           ? VoteList(displayedVotes, bc.maxWidth, bc.maxHeight)
           : ZugChat(
         widget.client,
         width: bc.maxWidth,
-        height: 320,
         areaName: "Game",
         serverName: "Lobby",
         borderColor: Colors.grey,
         cmdBkgColor: Colors.brown,
       );
 
-      return ListView(
-        scrollDirection: Axis.vertical,
-        children: [getMoveList(cg, bc.maxWidth, moveListHeight * 2), getBoard(cg, bc.maxWidth), statBox, chatOrVotes],
-      );
+      return SingleChildScrollView(child: SizedBox(width: bc.maxWidth, height: bc.maxHeight, child: Column(
+        children: [getMoveList(cg, bc.maxWidth, moveListHeight * 2), getBoard(cg, bc.maxWidth), statBox, Expanded(child: chatOrVotes)],
+      )));
 
     });
   }
@@ -238,9 +248,11 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
           if ((widget.client.prefs?.getBool("movelist_hover") ?? false) && historySnapshot.isNotEmpty) {
             setHistorySnapshot({}, null);
           }
-          setState(() {
-            displayedVotes = {};
-          });
+          if (widget.landscape) {
+            setState(() {
+              displayedVotes = {};
+            });
+          }
         },
         child: Container(
             color: Colors.black,
@@ -259,14 +271,32 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
     MoleGame cg = widget.client.getCurrentGame();
     Map<String,dynamic>? votes = (ply >= 0 && ply < cg.moves.length) ? cg.moves[ply] : null;
     Color txtColor = selectedPly == ply ? Colors.green : Colors.white;
+
+    // Cyan highlight for current position
+    final isLive = votes == null;
+    final borderDecoration = isLive
+        ? BoxDecoration(
+      border: Border.all(color: Colors.cyan, width: 2),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.cyan.withOpacity(0.4),
+          blurRadius: 8,
+          spreadRadius: 1,
+        ),
+      ],
+    )
+        : BoxDecoration();
+
     return Container(
       decoration: ZugChat.getDecoration(color: Colors.black),
       width: moveListWidth,
       height: moveListHeight,
-      child: Center(
-        child: TextButton(
-          onHover: (b) {
-            if (widget.hoverMode) {
+      child: Container(
+        decoration: borderDecoration,
+        child: Center(
+          child: TextButton(
+            onHover: (b) {
+              if (widget.hoverMode) {
                 setState(() {
                   if (b && votes != null) {
                     displayedVotes = votes;
@@ -274,13 +304,16 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
                     displayedVotes = {};
                   }
                 });
-            }
-          },
-          onPressed: () => setHistoryPly(ply),
-          child: votes == null
-              ? Icon(Icons.refresh, color: txtColor)
-              : Text(votes["selected"]["move"]["san"] ?? "?",
-              style: TextStyle(color: txtColor)),
+              }
+            },
+            onPressed: () => setHistoryPly(ply),
+            child: isLive
+                ? Icon(Icons.videocam_outlined, color: Colors.cyan, size: 24)
+                : Text(
+              votes["selected"]["move"]["san"] ?? "?",
+              style: TextStyle(color: txtColor),
+            ),
+          ),
         ),
       ),
     );
@@ -347,7 +380,11 @@ class CurrentBoardState extends State<CurrentBoardWidget> {
   }
 
   Widget getStatusWidget(MoleGame cg, double width, double height, Map<String,dynamic> hoverVotes) {
-    double w = (width - (clock?.width ?? 0))/2;
+    double w2 = width / 5;
+    double w = w2 * 2;
+    if ((clock?.width ?? w2) != w2) {
+      clock = ChessClock(widget.client,w2,w2,Colors.brown);
+    }
     return SizedBox(width: width, height: height, child: Row( //crossAxisAlignment: CrossAxisAlignment.start,
         children: [
       Expanded(

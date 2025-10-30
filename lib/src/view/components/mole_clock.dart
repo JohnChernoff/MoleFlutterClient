@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zugclient/zug_model.dart';
-import '../mole_model.dart';
-import '../mole_fields.dart';
+import '../../model/mole_model.dart';
+import '../../model/mole_fields.dart';
 
 class ChessClock extends StatefulWidget {
   final MoleModel client;
