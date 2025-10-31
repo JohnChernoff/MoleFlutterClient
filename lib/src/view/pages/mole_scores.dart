@@ -15,6 +15,7 @@ class MoleScorePage extends StatefulWidget {
 }
 
 class _MoleScorePageState extends State<MoleScorePage> {
+  List<dynamic> topPlayers = []; //reversed for stack overlapping
   Map<int,dynamic> scoreVars = {};
   double width = 1024; double height = 720;
   final random = math.Random();
@@ -22,13 +23,14 @@ class _MoleScorePageState extends State<MoleScorePage> {
   @override
   void initState() {
     super.initState(); //print(widget.client.topPlayers);
-    for (int i = 0; i < widget.model.topPlayers.length; i++) {
-      scoreVars.putIfAbsent(i, () => getScoreVars()); //print(scoreVars[i]);
+    topPlayers = widget.model.topPlayers.reversed.toList();
+    for (int i = 0; i < topPlayers.length; i++) {
+      scoreVars.putIfAbsent(i, () => getScoreVars()); //print(scoreVars[p]);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       for (var i in scoreVars.keys) { scoreVars[i] = getScoreVars(); }
       setState(() { });
-      widget.model.playAudio(AssetSource("mole_score"));
+      widget.model.playAudio(AssetSource("audio/tracks/fugue.mp3")); //mole_score.mp3"));
     });
   }
 
@@ -91,9 +93,9 @@ class _MoleScorePageState extends State<MoleScorePage> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text("${i + 1}"),
-                                  Text("${widget.model.topPlayers.get(i)[fieldName]}"),
-                                  Text("${widget.model.topPlayers.get(i)['rating']}")
+                                  Text("${topPlayers.length - i}"),
+                                  Text("${topPlayers.get(i)[fieldName]}"),
+                                  Text("${topPlayers.get(i)['rating']}")
                                 ]
                               )
                           )

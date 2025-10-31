@@ -31,6 +31,7 @@ class MoleLobbyPage extends LobbyPage {
   List<CommandButtonData> getExtraCmdButtons(BuildContext context) {
     MoleModel moleModel = model as MoleModel;
     List<CommandButtonData> extras = super.getExtraCmdButtons(context);
+    extras.add(CommandButtonData("Help",Colors.blue,Icons.help,() => moleModel.gotoMolePage(MolePage.help)));
     extras.add(CommandButtonData("Discord",Colors.purple,Icons.discord,gotoDiscord));
     extras.add(CommandButtonData("Top",Colors.cyan,Icons.star,() => moleModel.getTop(10)));
     extras.add(CommandButtonData("History",Colors.brown,Icons.hourglass_bottom,() => moleModel.getPlayerHistory(moleModel.userName)));

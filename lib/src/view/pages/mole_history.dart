@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'package:chessground/chessground.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
+import 'package:universal_html/js.dart' as js;
 import 'package:zugclient/zug_model.dart';
 import '../../../main.dart';
 import '../../model/mole_model.dart';
 import 'package:chess/chess.dart' as dc;
-import 'dart:js' as js;
+import 'package:audioplayers/audioplayers.dart';
 
 class PlayerHistoryPage extends StatefulWidget {
   final MoleModel model;
@@ -32,6 +33,9 @@ class _PlayerHistoryPage extends State<PlayerHistoryPage> {
               widget.model.playerHistory["pgn_list"][index]["pgn"].toString()
           )));
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.model.playAudio(AssetSource("audio/tracks/epic.mp3")); //mole_score.mp3"));
+    });
   }
 
   @override
@@ -42,19 +46,22 @@ class _PlayerHistoryPage extends State<PlayerHistoryPage> {
           child: Text("History not found")));
     }
     final double screenWidth = MediaQuery.of(context).size.width;
-    return InkWell(child: Column(
+    return Column(
       children: [
-        Container(
-            color: Colors.black,width: screenWidth,height: MoleApp.headerHeight,),
-            //child: ListView(scrollDirection: Axis.horizontal, children: widget.headButts)),
-        Text(widget.model.playerHistory["player_data"].toString()),
+        Center(child: SizedBox(width: 240, height: 128, child:
+        ElevatedButton(
+            onPressed: () => widget.model.gotoMolePage(MolePage.lobby),
+            child: Row(children: [
+              Icon(Icons.keyboard_return),Text(" Back to Lobby")]
+            )))),
+        Center(child: Text(widget.model.playerHistory["player_data"].toString())),
         Expanded(
             child: Container(
               color: Colors.black,
               child: pgnView,
             )),
       ],
-    ), onTap: () => widget.model.gotoMolePage(MolePage.lobby));
+    );
   }
 }
 
@@ -74,8 +81,7 @@ class _PGNViewer extends State<PGNViewer> {
 
   @override
   void initState() {
-    super.initState();
-
+    super.initState(); //print("Pgn: ${widget.pgn}");
     final pgnGame = jsonDecode(js.context.callMethod("parsePgn", [widget.pgn])); //print(pgnGame);
     dc.Chess game = dc.Chess(); //game.load_pgn(widget.pgn);
     headers = pgnGame["tags"]; //print(headers.toString());

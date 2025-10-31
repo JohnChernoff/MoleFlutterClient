@@ -127,6 +127,7 @@ class MoleModel extends ZugModel {
   gotoMolePage(MolePage p) {
     if (page != p) {
       page = p;
+      trackPlayer.stop();
       goToPage(page.zugPage);
       notifyListeners();
     }
