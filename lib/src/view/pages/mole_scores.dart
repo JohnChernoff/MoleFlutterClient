@@ -1,20 +1,17 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
+import '../../../main.dart';
 import '../../model/mole_model.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_fields.dart';
-import 'main_page.dart';
 import 'dart:math' as math;
 
 class MoleScorePage extends StatefulWidget {
-  final MoleModel client;
-  final List<Widget> buttons;
-  const MoleScorePage(this.client,this.buttons,{super.key});
-
+  final MoleModel model;
+  const MoleScorePage(this.model,{super.key});
   @override
   State<StatefulWidget> createState() => _MoleScorePageState();
-
 }
 
 class _MoleScorePageState extends State<MoleScorePage> {
@@ -25,15 +22,13 @@ class _MoleScorePageState extends State<MoleScorePage> {
   @override
   void initState() {
     super.initState(); //print(widget.client.topPlayers);
-    for (int i = 0; i < widget.client.topPlayers.length; i++) {
+    for (int i = 0; i < widget.model.topPlayers.length; i++) {
       scoreVars.putIfAbsent(i, () => getScoreVars()); //print(scoreVars[i]);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(seconds: 1)).then((value) {
-        for (var i in scoreVars.keys) { scoreVars[i] = getScoreVars(); }
-        setState(() { });
-        widget.client.playAudio(AssetSource("mole_score"));
-      });
+      for (var i in scoreVars.keys) { scoreVars[i] = getScoreVars(); }
+      setState(() { });
+      widget.model.playAudio(AssetSource("mole_score"));
     });
   }
 
@@ -53,9 +48,14 @@ class _MoleScorePageState extends State<MoleScorePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.model.topPlayers.isEmpty) {
+      return Center(child: ElevatedButton(
+          onPressed: () => widget.model.gotoMolePage(MolePage.lobby),
+          child: Text("Scores not found")));
+    }
     width = MediaQuery.of(context).size.width;
     height = ZugUtils.getActualScreenHeight(context);
-    return Container(
+    return InkWell(child: Container(
         color: Colors.black,
         width: width,
         height: height,
@@ -63,10 +63,10 @@ class _MoleScorePageState extends State<MoleScorePage> {
           children: [
             Container(
                 color: Colors.black,
-                height: MainMolePage.headerHeight,
+                height: MoleApp.headerHeight,
                 child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: widget.buttons)),
+                    scrollDirection: Axis.horizontal)),
+                    //children: widget.buttons)),
             Expanded(
                 child: Stack(
                   fit: StackFit.passthrough,
@@ -92,8 +92,8 @@ class _MoleScorePageState extends State<MoleScorePage> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Text("${i + 1}"),
-                                  Text("${widget.client.topPlayers.get(i)[fieldName]}"),
-                                  Text("${widget.client.topPlayers.get(i)['rating']}")
+                                  Text("${widget.model.topPlayers.get(i)[fieldName]}"),
+                                  Text("${widget.model.topPlayers.get(i)['rating']}")
                                 ]
                               )
                           )
@@ -101,7 +101,9 @@ class _MoleScorePageState extends State<MoleScorePage> {
                   )),
             ))
           ],
-        ));
+        )),
+      onTap: () => widget.model.gotoMolePage(MolePage.lobby),
+    );
   }
 
 }

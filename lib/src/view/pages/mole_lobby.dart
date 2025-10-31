@@ -29,8 +29,11 @@ class MoleLobbyPage extends LobbyPage {
 
   @override
   List<CommandButtonData> getExtraCmdButtons(BuildContext context) {
+    MoleModel moleModel = model as MoleModel;
     List<CommandButtonData> extras = super.getExtraCmdButtons(context);
     extras.add(CommandButtonData("Discord",Colors.purple,Icons.discord,gotoDiscord));
+    extras.add(CommandButtonData("Top",Colors.cyan,Icons.star,() => moleModel.getTop(10)));
+    extras.add(CommandButtonData("History",Colors.brown,Icons.hourglass_bottom,() => moleModel.getPlayerHistory(moleModel.userName)));
     return extras;
   }
 
@@ -199,9 +202,7 @@ class MoleLobbyPage extends LobbyPage {
         onPressed: () {
           model.areaCmd(action, data: { "player" : targetUniqueName.toJSON()}); //TODO: deal with authSource
         },
-        icon: Icon(
-          iconData,
-        ));
+        icon: Icon(iconData));
   }
 
   void gotoDiscord() {

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart' hide Color;
+import 'package:mole_app/main.dart';
 import 'package:mole_app/src/view/components/mole_dialogs.dart';
 import 'package:mole_app/src/view/components/vote_list.dart';
 import 'package:zug_utils/zug_dialogs.dart';
@@ -10,19 +11,17 @@ import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_chat.dart';
 import 'package:zugclient/zug_fields.dart';
 import 'package:zugclient/zug_user.dart';
-import 'main_page.dart';
+import '../components/mole_menu.dart';
 import '../../model/mole_model.dart';
 import '../components/mole_clock.dart';
 import '../../model/mole_fields.dart';
 
 class CurrentGameWidget extends StatefulWidget {
   final MoleModel client;
-  final List<Widget> headerButtons;
   final Color backgroundColor, foregroundColor;
-  final bool landscape;
   final bool hoverMode = false;
 
-  const CurrentGameWidget(this.client, this.headerButtons, this.landscape, {
+  const CurrentGameWidget(this.client, {
     this.foregroundColor = Colors.greenAccent,
     this.backgroundColor = Colors.black,
     super.key});
@@ -90,127 +89,127 @@ class CurrentGameState extends State<CurrentGameWidget> {
 
   @override
   Widget build(BuildContext context) { //toast.init(context);
+
     final MoleGame cg = widget.client.getCurrentGame();
     widget.client.chessBoardController.loadFen(hoverFEN ?? cg.fen);
     //if (hoverFEN == null) { ZugUtils.scrollDown(moveListController, 250, delay: 750); selectedPly = cg.moves.length; }
 
-    return widget.landscape
-        ? buildLandscape(cg, context)
-        : buildPortrait(cg, context);
-  }
-
-  Widget buildLandscape(MoleGame cg, BuildContext context) {
     return LayoutBuilder(builder: (BuildContext ctx, BoxConstraints bc) {
-
-      double boardSize = bc.maxHeight - MainMolePage.headerHeight;
-      double eastWidth = bc.maxWidth - (boardSize + (moveListWidth * 2));
-      double statusHeight = boardSize / 4;
-      bool statusUnderBoard = false;
-
-
-      if (eastWidth < 480) {
-         boardSize -= statusHeight;
-         eastWidth = bc.maxWidth - (boardSize + (moveListWidth * 2));
-         statusUnderBoard = true;
-      }
-
-      final Widget header = Container(
-        color: Colors.black,
-        width: boardSize,
-        height: MainMolePage.headerHeight,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          children: widget.headerButtons,
-        ),
-      );
-
-      double topMargin = 1;
-      final Widget statBox = Container(
-        margin: EdgeInsets.only(top: topMargin),
-        decoration: BoxDecoration(
-          color: Colors.brown,
-          border: Border.symmetric(vertical: BorderSide(color: Colors.grey[800]!, width: 2)),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        width: statusUnderBoard ? boardSize : eastWidth,
-        height: statusHeight - topMargin,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: getStatusWidget(cg,
-              statusUnderBoard ? boardSize : eastWidth,
-              statusHeight - topMargin,
-              historySnapshot),
-        ),
-      );
-
-      final Widget chatOrVotes = //Padding(padding: EdgeInsets.only(right: 4, top: 4), child:
-      displayedVotes.isNotEmpty
-          ? VoteList(displayedVotes, eastWidth, bc.maxHeight)
-          : ZugChat(
-        widget.client,
-        height: bc.maxHeight - statusHeight,
-        areaName: "Game",
-        serverName: "Lobby",
-        borderColor: Colors.grey,
-        cmdBkgColor: Colors.brown,
-      );
-
-      return Row(
-        children: [
-          Container(
-            color: Colors.black,
-            width: boardSize + (moveListWidth * 2),
-            child: Column(
-              children: [ //const Divider(height: 2),
-                header,
-                Row(children: [
-                    getMoveList(cg,moveListWidth * 2,boardSize),
-                    Column(children: [
-                      getBoard(cg, boardSize),
-                      if (statusUnderBoard) statBox,
-                    ]),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                Expanded(child: chatOrVotes),
-                if (!statusUnderBoard) statBox, //Padding(padding: EdgeInsets.only(top: 4, left: 0, right: 4), child: statBox),
-              ],
-            ),
-          )
-        ],
-      );
+      return bc.maxWidth > bc.maxHeight ? buildLandscape(cg, context, bc) : buildPortrait(cg, context, bc);
     });
+
   }
 
-  Widget buildPortrait(MoleGame cg, BuildContext context) {
-    return LayoutBuilder(builder: (BuildContext ctx, BoxConstraints bc) {
+  Widget buildLandscape(MoleGame cg, BuildContext context, BoxConstraints bc) {
+    double boardSize = bc.maxHeight - MoleApp.headerHeight;
+    double eastWidth = bc.maxWidth - (boardSize + (moveListWidth * 2));
+    double statusHeight = boardSize / 4;
+    bool statusUnderBoard = false;
 
-      final Widget statBox = Container( //decoration: ZugChat.getDecoration(color: Colors.brown, borderWidth: 4),
+
+    if (eastWidth < 480) {
+      boardSize -= statusHeight;
+      eastWidth = bc.maxWidth - (boardSize + (moveListWidth * 2));
+      statusUnderBoard = true;
+    }
+
+    final Widget header = Container(
+      color: Colors.black,
+      width: boardSize,
+      height: MoleApp.headerHeight,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: getBoardHeaderButtons(widget.client,bc.maxHeight),
+      ),
+    );
+
+    double topMargin = 1;
+    final Widget statBox = Container(
+      margin: EdgeInsets.only(top: topMargin),
+      decoration: BoxDecoration(
         color: Colors.brown,
-        child: getStatusWidget(cg, bc.maxWidth, 128, historySnapshot),
-      );
+        border: Border.symmetric(vertical: BorderSide(color: Colors.grey[800]!, width: 2)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      width: statusUnderBoard ? boardSize : eastWidth,
+      height: statusHeight - topMargin,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: getStatusWidget(cg,
+            statusUnderBoard ? boardSize : eastWidth,
+            statusHeight - topMargin,
+            historySnapshot),
+      ),
+    );
 
-      final Widget chatOrVotes =  displayedVotes.isNotEmpty
-          ? VoteList(displayedVotes, bc.maxWidth, bc.maxHeight)
-          : ZugChat(
-        widget.client,
-        width: bc.maxWidth,
-        areaName: "Game",
-        serverName: "Lobby",
-        borderColor: Colors.grey,
-        cmdBkgColor: Colors.brown,
-      );
+    final Widget chatOrVotes = //Padding(padding: EdgeInsets.only(right: 4, top: 4), child:
+    displayedVotes.isNotEmpty
+        ? VoteList(displayedVotes, eastWidth, bc.maxHeight)
+        : ZugChat(
+      widget.client,
+      height: bc.maxHeight - statusHeight,
+      areaName: "Game",
+      serverName: "Lobby",
+      borderColor: Colors.grey,
+      cmdBkgColor: Colors.brown,
+    );
 
-      return SingleChildScrollView(child: SizedBox(width: bc.maxWidth, height: bc.maxHeight, child: Column(
-        children: [getMoveList(cg, bc.maxWidth, moveListHeight * 2), getBoard(cg, bc.maxWidth), statBox, Expanded(child: chatOrVotes)],
-      )));
+    return Row(
+      children: [
+        Container(
+          color: Colors.black,
+          width: boardSize + (moveListWidth * 2),
+          child: Column(
+            children: [ //const Divider(height: 2),
+              header,
+              Row(children: [
+                getMoveList(cg,moveListWidth * 2,boardSize, true),
+                Column(children: [
+                  getBoard(cg, boardSize),
+                  if (statusUnderBoard) statBox,
+                ]),
+              ],
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: Column(
+            children: [
+              Expanded(child: chatOrVotes),
+              if (!statusUnderBoard) statBox, //Padding(padding: EdgeInsets.only(top: 4, left: 0, right: 4), child: statBox),
+            ],
+          ),
+        )
+      ],
+    );
+  }
 
-    });
+  Widget buildPortrait(MoleGame cg, BuildContext context, BoxConstraints bc) {
+    List<Widget> headButts = getBoardHeaderButtons(widget.client,bc.maxWidth);
+    final Widget statBox = Container( //decoration: ZugChat.getDecoration(color: Colors.brown, borderWidth: 4),
+      color: Colors.brown,
+      child: getStatusWidget(cg, bc.maxWidth, 128, historySnapshot),
+    );
+
+    final Widget chatOrVotes =  displayedVotes.isNotEmpty
+        ? VoteList(displayedVotes, bc.maxWidth, bc.maxHeight)
+        : ZugChat(
+      widget.client,
+      width: bc.maxWidth,
+      areaName: "Game",
+      serverName: "Lobby",
+      borderColor: Colors.grey,
+      cmdBkgColor: Colors.brown,
+    );
+
+    return SingleChildScrollView(child: SizedBox(width: bc.maxWidth, height: bc.maxHeight, child: Column(
+      children: [
+        getMoveList(cg, bc.maxWidth, moveListHeight * 2, false),
+        getBoard(cg, bc.maxWidth),
+        statBox,
+        Expanded(child: chatOrVotes)],
+    )));
   }
 
   Widget getBoard(MoleGame game, double boardSize) { //final String fen = hoverFEN ?? game.fen; //print("Generating board: $fen");
@@ -231,11 +230,11 @@ class CurrentGameState extends State<CurrentGameWidget> {
     ));
   }
 
-  Widget getMoveList(MoleGame cg, double width, double height) {
+  Widget getMoveList(MoleGame cg, double width, double height, bool landscape) {
     List<Widget> rowList = [];
     for (int i=0; i<cg.moves.length; i+=2) {
       rowList.add(Flex(
-        direction: widget.landscape ? Axis.horizontal : Axis.vertical,
+        direction: landscape ? Axis.horizontal : Axis.vertical,
         children: [
           getMoveBox(i),
           getMoveBox(i+1),
@@ -248,7 +247,7 @@ class CurrentGameState extends State<CurrentGameWidget> {
           if ((widget.client.prefs?.getBool("movelist_hover") ?? false) && historySnapshot.isNotEmpty) {
             setHistorySnapshot({}, null);
           }
-          if (widget.landscape) {
+          if (landscape) {
             setState(() {
               displayedVotes = {};
             });
@@ -259,7 +258,7 @@ class CurrentGameState extends State<CurrentGameWidget> {
             width: width,
             height: height,
             child: ListView(
-              scrollDirection: widget.landscape ? Axis.vertical : Axis.horizontal,
+              scrollDirection: landscape ? Axis.vertical : Axis.horizontal,
               controller: moveListController,
               children: rowList,
             )

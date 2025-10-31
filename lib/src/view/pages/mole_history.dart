@@ -3,54 +3,58 @@ import 'package:chessground/chessground.dart';
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:zugclient/zug_model.dart';
-import 'main_page.dart';
+import '../../../main.dart';
 import '../../model/mole_model.dart';
 import 'package:chess/chess.dart' as dc;
 import 'dart:js' as js;
 
 class PlayerHistoryPage extends StatefulWidget {
-  final MoleModel client;
-  final List<Widget> headButts;
-  const PlayerHistoryPage(this.client, this.headButts, {super.key});
+  final MoleModel model;
+  const PlayerHistoryPage(this.model, {super.key});
 
   @override
   State<StatefulWidget> createState() => _PlayerHistoryPage();
 }
 
 class _PlayerHistoryPage extends State<PlayerHistoryPage> {
-  late GridView pgnList;
+  List<dynamic> pgnList = [];
+  late GridView pgnView;
 
   @override
   void initState() {
-    ZugModel.log.info("Initializing History: ${widget.client.playerHistory["player_data"].toString()}");
-    // TODO: implement initState
     super.initState();
-
-    pgnList = GridView(
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
-        children: List.generate(widget.client.playerHistory["pgn_list"].length, (index) => PGNViewer(
-            widget.client.playerHistory["pgn_list"][index]["pgn"].toString()
-        )));
+    if (widget.model.playerHistory["pgn_list"] != null) {
+      ZugModel.log.info("Initializing History: ${widget.model.playerHistory["player_data"].toString()}");
+      pgnList = widget.model.playerHistory["pgn_list"];
+      pgnView = GridView(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+          children: List.generate(pgnList.length, (index) => PGNViewer(
+              widget.model.playerHistory["pgn_list"][index]["pgn"].toString()
+          )));
+    }
   }
 
   @override
   Widget build(BuildContext context) { //print(widget.client.playerHistory);
+    if (pgnList.isEmpty) {
+      return Center(child: ElevatedButton(
+          onPressed: () => widget.model.gotoMolePage(MolePage.lobby),
+          child: Text("History not found")));
+    }
     final double screenWidth = MediaQuery.of(context).size.width;
-    return Column(
+    return InkWell(child: Column(
       children: [
         Container(
-            color: Colors.black,width: screenWidth,height: MainMolePage.headerHeight,
-            child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: widget.headButts)),
-        Text(widget.client.playerHistory["player_data"].toString()),
+            color: Colors.black,width: screenWidth,height: MoleApp.headerHeight,),
+            //child: ListView(scrollDirection: Axis.horizontal, children: widget.headButts)),
+        Text(widget.model.playerHistory["player_data"].toString()),
         Expanded(
             child: Container(
               color: Colors.black,
-              child: pgnList,
+              child: pgnView,
             )),
       ],
-    );
+    ), onTap: () => widget.model.gotoMolePage(MolePage.lobby));
   }
 }
 
@@ -174,3 +178,4 @@ class _PGNViewer extends State<PGNViewer> {
     );
   }
 }
+

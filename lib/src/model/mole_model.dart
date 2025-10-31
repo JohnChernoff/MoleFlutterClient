@@ -14,6 +14,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:zug_utils/zug_dialogs.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/dialogs.dart';
+import 'package:zugclient/zug_app.dart';
 import 'package:zugclient/zug_area.dart';
 import 'package:zugclient/zug_fields.dart';
 import 'package:zugclient/zug_model.dart';
@@ -63,18 +64,24 @@ class CustomPieceSet {
   CustomPieceSet(this.name,this.pieceSet);
 }
 
+enum MolePage {
+  game(PageType.main),
+  lobby(PageType.lobby),
+  options(PageType.options),
+  help(PageType.lobby),
+  top(PageType.lobby),
+  history(PageType.lobby);
+  final PageType zugPage;
+  const MolePage(this.zugPage);
+}
 enum MoleOption {pieceSet,boardColors,streamerMode}
 enum MoleClip {accuse,defect,rampage,bomb,create,doink,moveBlack,moveWhite,vote,roleInspector,roleMole,rolePlayer}
 
 class MoleModel extends ZugModel {
-
+  MolePage page = MolePage.lobby;
   dc.Chess chess = dc.Chess();
   Map<Enum,Completer> waitMap = {};
   int lastUpdate = 0;
-  bool starting = true;
-  Map<String, dynamic> options = {};
-  bool modal = false;
-  List<dynamic> lobbyLog = [];
   List<dynamic> topPlayers = [];
   Map<String,dynamic> playerHistory = {};
   bool confirmAI = false;
@@ -113,9 +120,16 @@ class MoleModel extends ZugModel {
     for (MoleClip clip in MoleClip.values) { //print("Loading: ${clip.name}");
       clips.putIfAbsent(clip.name, () => AssetSource("audio/clips/${clip.name}.mp3"));
     }
-
     //print(waitMap[MoleServMsg.history]);
     //initFire().then((value) {  //_connect(); } );
+  }
+
+  gotoMolePage(MolePage p) {
+    if (page != p) {
+      page = p;
+      goToPage(page.zugPage);
+      notifyListeners();
+    }
   }
 
   getGame(dynamic data) => getOrCreateArea(data) as MoleGame;
@@ -229,8 +243,8 @@ class MoleModel extends ZugModel {
     topPlayers = data;
     if (waitMap[MoleServMsg.top]?.isCompleted != true) {
       waitMap[MoleServMsg.top]?.complete();
+      gotoMolePage(MolePage.top);
     }
-
   }
 
   void handleFinger(data) {
@@ -252,6 +266,7 @@ class MoleModel extends ZugModel {
       ZugModel.log.info("Waiting on history");
     }
     waitMap[MoleServMsg.history]?.complete();
+    gotoMolePage(MolePage.history);
   }
 
   void handleVotelist(data) { //print("Votes: $data");
@@ -359,17 +374,20 @@ class MoleModel extends ZugModel {
 
   void handleMove(data) { //print("New Move: ${jsonEncode(data).toString()}");
     MoleGame game = getGame(data);
-    playClip(game.sideToMove() == SideToMove.black ? "move_black" : "move_white"); //TODO: fix NPE
-    if (data["move_votes"] != null) {
-      //print("${game.moves.length}: ${data["ply"]}");
-      if (game.moves.length + 1 == data["ply"]) {
-        game.moves.add(data["move_votes"]);
-        //if (kIsWeb) {  Future.delayed(const Duration(milliseconds: 250)).then((value) => update()); } //TODO: KLUUUUUDGE
-        game.fen = data["move_votes"]["fen"];
-      }
-      else if ((DateTime.timestamp().millisecondsSinceEpoch - lastUpdate) > 5000) {
-        ZugModel.log.info("Inconsistent move history, updating...");
-        areaCmd(MoleClientMsg.moveHistory);
+    if (currentArea == game) {
+      playClip(game.sideToMove() == SideToMove.black ? "move_black" : "move_white"); //TODO: fix NPE
+      if (data["move_votes"] != null) {
+        //print("${game.moves.length}: ${data["ply"]}");
+        if (game.moves.length + 1 == data["ply"]) {
+          game.moves.add(data["move_votes"]);
+          //if (kIsWeb) {  Future.delayed(const Duration(milliseconds: 250)).then((value) => update()); } //TODO: KLUUUUUDGE
+          game.fen = data["move_votes"]["fen"];
+        }
+        else if ((DateTime.timestamp().millisecondsSinceEpoch - lastUpdate) > 5000) {
+
+          ZugModel.log.info("Inconsistent move history, updating...");
+          areaCmd(MoleClientMsg.moveHistory);
+        }
       }
     }
   }

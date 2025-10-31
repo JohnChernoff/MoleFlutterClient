@@ -1,15 +1,18 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:mole_app/src/view/pages/main_page.dart';
+import 'package:mole_app/src/view/pages/game_page.dart';
 import 'package:mole_app/src/model/mole_model.dart';
+import 'package:mole_app/src/view/pages/mole_history.dart';
 import 'package:mole_app/src/view/pages/mole_lobby.dart';
 import 'package:mole_app/src/view/pages/mole_options.dart';
+import 'package:mole_app/src/view/pages/mole_scores.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_app.dart';
 import 'package:logging/logging.dart';
 import 'package:zugclient/zug_chat.dart';
 import 'package:zugclient/zug_fields.dart';
 import 'package:zugclient/zug_model.dart';
+import 'package:zugclient/zug_option.dart';
 
 //TODO: coordinates option, music/sound, help, option descriptions
 //autologin for lichess, etc. (use prefs)
@@ -30,6 +33,7 @@ void main() {
 }
 
 class MoleApp extends ZugApp {
+  static const double headerHeight = 36;
 
   MoleApp(super.client,super.appName,{
     super.splashLandscapeImgPath = "images/splash_land.png", //TODO: place in mole.ini
@@ -59,22 +63,33 @@ class MoleApp extends ZugApp {
 
   @override
   Widget createMainPage(ZugModel model) {
-    return MainMolePage(model as MoleModel);
+    return CurrentGameWidget(model as MoleModel);
   }
 
   @override
-  Widget createLobbyPage(model) {
-    return MoleLobbyPage(
-      model,
-      backgroundImage: null, //ZugUtils.getAssetImage("images/molefog1.png"),
-      zugChat: ZugChat(model,
-          width: 1000,
-          areaName: "Game",
-          serverName: "Lobby",
-          borderColor: Colors.black,
-          defScope: MessageScope.server),
-    );
+  Widget createLobbyPage(ZugModel model) {
+    if (model is MoleModel) {
+      return switch(model.page) {
+        MolePage.game => getLobbyPage(model),
+        MolePage.lobby => getLobbyPage(model),
+        MolePage.options => getLobbyPage(model),
+        MolePage.help => throw UnimplementedError(),
+        MolePage.top => MoleScorePage(model),
+        MolePage.history => PlayerHistoryPage(model),
+      };
+    } throw UnknownValueTypeException(model);
   }
+
+  Widget getLobbyPage(ZugModel model) => MoleLobbyPage(
+    model,
+    backgroundImage: null, //ZugUtils.getAssetImage("images/molefog1.png"),
+    zugChat: ZugChat(model,
+        width: 1000,
+        areaName: "Game",
+        serverName: "Lobby",
+        borderColor: Colors.black,
+        defScope: MessageScope.server),
+  );
 
   @override
   Widget createOptionsPage(ZugModel model) {
