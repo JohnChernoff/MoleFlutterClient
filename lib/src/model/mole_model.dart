@@ -80,7 +80,6 @@ enum MoleClip {accuse,defect,rampage,bomb,create,doink,moveBlack,moveWhite,vote,
 class MoleModel extends ZugModel {
   MolePage page = MolePage.lobby;
   dc.Chess chess = dc.Chess();
-  Map<Enum,Completer> waitMap = {};
   int lastUpdate = 0;
   List<dynamic> topPlayers = [];
   Map<String,dynamic> playerHistory = {};
@@ -107,9 +106,6 @@ class MoleModel extends ZugModel {
       MoleServMsg.pgn : handlePGN,
       MoleServMsg.announce : handleAlertMsg,
     });
-    for (var key in getFunctions().keys) {
-      waitMap.putIfAbsent(key, () => Completer());
-    }
     loadChessgroundPieceSets();
     loadOptions([
       (MoleOption.pieceSet,ZugOption(customSets.last.name,label: "Piece Set", enums: List.generate(customSets.length, (i) => customSets.elementAt(i).name))),
@@ -236,16 +232,12 @@ class MoleModel extends ZugModel {
   }
 
   void getTop(int n) {
-    waitMap[MoleServMsg.top] = Completer();
-    send(MoleServMsg.top,data: {"n" : n});
+    send(MoleServMsg.top,data: {"n" : n}, responseType: MoleServMsg.top);
   }
 
   void handleTop(data) { //print("Top: " + data.toString());
     topPlayers = data;
-    if (waitMap[MoleServMsg.top]?.isCompleted != true) {
-      waitMap[MoleServMsg.top]?.complete();
-      gotoMolePage(MolePage.top);
-    }
+    if (awaiting(MoleServMsg.top)) gotoMolePage(MolePage.top);
   }
 
   void handleFinger(data) {
@@ -257,17 +249,12 @@ class MoleModel extends ZugModel {
   }
 
   void getPlayerHistory(UniqueName? uName) {
-    waitMap[MoleServMsg.history] = Completer();
-    send(MoleClientMsg.history,data: { fieldPlayer : uName?.toJSON() });
+    send(MoleClientMsg.history,data: { fieldPlayer : uName?.toJSON() }, responseType: MoleServMsg.history);
   }
 
   void handlePlayerHistory(data) {
     playerHistory = data;
-    if (waitMap[MoleServMsg.history] != null) {
-      ZugModel.log.info("Waiting on history");
-    }
-    waitMap[MoleServMsg.history]?.complete();
-    gotoMolePage(MolePage.history);
+    if (awaiting(MoleServMsg.history)) gotoMolePage(MolePage.history);
   }
 
   void handleVotelist(data) { //print("Votes: $data");

@@ -19,9 +19,14 @@ class _MoleOptionsPageState extends State<MoleOptionsPage> {
   Widget build(BuildContext context) {
     final bool inGame = widget.client.currentArea.id != noGameTitle;
 
-    return ColoredBox(color: Colors.blue, child: DefaultTabController(length: inGame ? 2 : 1, child: Column(
+    return ColoredBox(color: Colors.black, child: DefaultTabController(length: inGame ? 2 : 1, child: Column(
       children: [
-        TabBar(indicatorColor: Colors.white, labelColor: Colors.white, tabs: [
+        TabBar(
+            indicatorColor: Colors.white,
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.grey,
+            dividerColor: Colors.white, dividerHeight: 4,
+            tabs: [
           if (inGame) const Text("Game Options",style: TextStyle(fontSize: 24)),
           const Text("General Options",style: TextStyle(fontSize: 24)),
         ]),

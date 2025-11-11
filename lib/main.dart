@@ -37,7 +37,6 @@ class MoleApp extends ZugApp {
   static const double headerHeight = 36;
 
   MoleApp(super.client,super.appName,{
-    super.splashLandscapeImgPath = "images/splash_land.png", //TODO: place in mole.ini
     super.logLevel = Level.INFO,
     super.colorSeed = Colors.brown, //Colors.greenAccent,
     super.key
@@ -95,6 +94,17 @@ class MoleApp extends ZugApp {
   @override
   Widget createOptionsPage(ZugModel model) {
     return MoleOptionsPage(model as MoleModel);
+  }
+
+  @override
+  Widget createSplashPage(ZugModel model, {
+    String landImgPath = "images/splash_land.png",
+    String portImgPath = "images/splash_port.png",
+    List<LoginType> allowedLoginTypes = LoginType.values}) {
+    return super.createSplashPage(model,
+        landImgPath: landImgPath,
+        portImgPath: portImgPath,
+        allowedLoginTypes: [LoginType.lichess,LoginType.none]);
   }
 
   @override
