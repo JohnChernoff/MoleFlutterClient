@@ -28,6 +28,9 @@ class MoleLobbyPage extends LobbyPage {
     super.key});
 
   @override
+  bool get seekButt => false;
+
+  @override
   List<CommandButtonData> getExtraCmdButtons(BuildContext context) {
     MoleModel moleModel = model as MoleModel;
     List<CommandButtonData> extras = super.getExtraCmdButtons(context);
@@ -35,6 +38,7 @@ class MoleLobbyPage extends LobbyPage {
     extras.add(CommandButtonData("Discord",Colors.purple,Icons.discord,gotoDiscord));
     extras.add(CommandButtonData("Top",Colors.cyan,Icons.star,() => moleModel.getTop(10)));
     extras.add(CommandButtonData("History",Colors.brown,Icons.hourglass_bottom,() => moleModel.getPlayerHistory(moleModel.userName)));
+    extras.add(CommandButtonData("Events",Colors.green,Icons.event,() => moleModel.getEvents()));
     return extras;
   }
 

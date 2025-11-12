@@ -4,8 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart';
 import 'package:zug_utils/zug_utils.dart';
 
-enum MoleServMsg {announce,top,history,info,users,moveUpdate,ready,side,confirmMove,voteList,moleBomb,veto,move,rampage,defection,role,startGame,result,version,finger,pgn}
-enum MoleClientMsg {pushToken,notify,top,history,cmd,role,status,veto,draw,resign,kickoff,voteoff,move,abort,inspect,bomb,version,finger,pgn,moveHistory}
+enum MoleServMsg {announce,top,history,info,users,moveUpdate,ready,side,confirmMove,voteList,moleBomb,veto,move,rampage,defection,role,startGame,result,version,finger,pgn,events}
+enum MoleClientMsg {pushToken,notify,top,history,cmd,role,status,veto,draw,resign,kickoff,voteoff,move,abort,inspect,bomb,version,finger,pgn,moveHistory,events}
 enum PlayerAction {accuse,kick,ban,finger,whisper,cancel}
 enum MolePhase {pregame,voting,veto,postgame}
 

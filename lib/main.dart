@@ -2,11 +2,13 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:mole_app/src/view/pages/game_page.dart';
 import 'package:mole_app/src/model/mole_model.dart';
+import 'package:mole_app/src/view/pages/mole_events.dart';
 import 'package:mole_app/src/view/pages/mole_help.dart';
 import 'package:mole_app/src/view/pages/mole_history.dart';
 import 'package:mole_app/src/view/pages/mole_lobby.dart';
 import 'package:mole_app/src/view/pages/mole_options.dart';
 import 'package:mole_app/src/view/pages/mole_scores.dart';
+import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_app.dart';
 import 'package:logging/logging.dart';
@@ -19,6 +21,7 @@ import 'package:zugclient/zug_option.dart';
 //autologin for lichess, etc. (use prefs)
 
 void main() {
+  tzdata.initializeTimeZones();
   WidgetsFlutterBinding.ensureInitialized();
   ZugUtils.getIniDefaults("mole.ini").then((defaults) {
     ZugUtils.getPrefs().then((prefs) {
@@ -76,6 +79,7 @@ class MoleApp extends ZugApp {
         MolePage.help => MoleChessHelpPage(model),
         MolePage.top => MoleScorePage(model),
         MolePage.history => PlayerHistoryPage(model),
+        MolePage.events => MoleEventWidget(model)
       };
     } throw UnknownValueTypeException(model);
   }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:chess/chess.dart' as dc;
@@ -23,6 +22,7 @@ import 'package:zugclient/zug_user.dart';
 import '../../firebase_options.dart';
 import 'package:flutter/services.dart';
 import 'mole_fields.dart';
+import 'mole_event.dart';
 
 //TODO: ZugOptions, Lobby dimensions
 
@@ -70,6 +70,7 @@ enum MolePage {
   options(PageType.options),
   help(PageType.lobby),
   top(PageType.lobby),
+  events(PageType.lobby),
   history(PageType.lobby);
   final PageType zugPage;
   const MolePage(this.zugPage);
@@ -81,6 +82,7 @@ class MoleModel extends ZugModel {
   MolePage page = MolePage.lobby;
   dc.Chess chess = dc.Chess();
   int lastUpdate = 0;
+  List<MoleEvent> events = [];
   List<dynamic> topPlayers = [];
   Map<String,dynamic> playerHistory = {};
   bool confirmAI = false;
@@ -105,6 +107,7 @@ class MoleModel extends ZugModel {
       MoleServMsg.finger : handleFinger,
       MoleServMsg.pgn : handlePGN,
       MoleServMsg.announce : handleAlertMsg,
+      MoleServMsg.events : handleEvents,
     });
     loadChessgroundPieceSets();
     loadOptions([
@@ -255,6 +258,18 @@ class MoleModel extends ZugModel {
   void handlePlayerHistory(data) {
     playerHistory = data;
     if (awaiting(MoleServMsg.history)) gotoMolePage(MolePage.history);
+  }
+
+  void getEvents() {
+    send(MoleClientMsg.events, responseType: MoleServMsg.events);
+  }
+
+  void handleEvents(data) {
+    events.clear();
+    for (dynamic eventData in data) {
+      events.add(MoleEvent.fromJson(eventData));
+    }
+    if (awaiting(MoleServMsg.events)) gotoMolePage(MolePage.events);
   }
 
   void handleVotelist(data) { //print("Votes: $data");

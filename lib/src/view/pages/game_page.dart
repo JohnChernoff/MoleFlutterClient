@@ -19,7 +19,7 @@ import '../../model/mole_fields.dart';
 class CurrentGameWidget extends StatefulWidget {
   final MoleModel client;
   final Color backgroundColor, foregroundColor;
-  final bool hoverMode = false;
+  final bool hoverMode = true;
 
   const CurrentGameWidget(this.client, {
     this.foregroundColor = Colors.greenAccent,
@@ -143,16 +143,17 @@ class CurrentGameState extends State<CurrentGameWidget> {
     );
 
     final Widget chatOrVotes = //Padding(padding: EdgeInsets.only(right: 4, top: 4), child:
-    displayedVotes.isNotEmpty
-        ? VoteList(displayedVotes, eastWidth, bc.maxHeight)
-        : ZugChat(
-      widget.client,
-      height: bc.maxHeight - statusHeight,
-      areaName: "Game",
-      serverName: "Lobby",
-      borderColor: Colors.grey,
-      cmdBkgColor: Colors.brown,
-    );
+    Stack(children: [
+      ZugChat(
+        widget.client,
+        height: bc.maxHeight - statusHeight,
+        areaName: "Game",
+        serverName: "Lobby",
+        borderColor: Colors.grey,
+        cmdBkgColor: Colors.brown,
+      ),
+      if (displayedVotes.isNotEmpty) VoteList(displayedVotes, eastWidth, bc.maxHeight)
+    ]);
 
     return Row(
       children: [

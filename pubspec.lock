@@ -471,7 +471,7 @@ packages:
     source: hosted
     version: "2.1.0"
   intl:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: intl
       sha256: "3df61194eb431efc39c4ceba583b95633a403f46c9fd341e550ce0bfa50e9aa5"
@@ -827,6 +827,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.6"
+  timezone:
+    dependency: "direct main"
+    description:
+      name: timezone
+      sha256: dd14a3b83cfd7cb19e7888f1cbc20f258b8d71b54c06f79ac585f14093a287d1
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.10.1"
   tuple:
     dependency: transitive
     description:
@@ -1075,7 +1083,7 @@ packages:
       path: "C:/Users/jac107/IdeaProjects/flutter/zugclient"
       relative: false
     source: path
-    version: "0.5.5"
+    version: "0.5.7"
 sdks:
   dart: ">=3.9.0 <4.0.0"
   flutter: ">=3.35.0"
