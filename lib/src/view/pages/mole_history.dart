@@ -4,7 +4,6 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:flutter/material.dart';
 import 'package:universal_html/js.dart' as js;
 import 'package:zugclient/zug_model.dart';
-import '../../../main.dart';
 import '../../model/mole_model.dart';
 import 'package:chess/chess.dart' as dc;
 import 'package:audioplayers/audioplayers.dart';

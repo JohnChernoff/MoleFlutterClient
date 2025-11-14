@@ -167,8 +167,7 @@ class MoleModel extends ZugModel {
   }
 
   @override
-  void connected() {
-    ZugModel.log.info("Connected");
+  void connected() { //ZugModel.log.info("Connected");
     super.connected();
     send(MoleClientMsg.version);
     checkRedirect("lichess.org");

@@ -1064,10 +1064,10 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: f35a2293c5416677a258aef51a06b426714e83a7
+      resolved-ref: f44f0e223a446fa6ea431bd79941c662a8370eb3
       url: "https://github.com/JohnChernoff/ZugNetFlutter"
     source: git
-    version: "0.0.1"
+    version: "0.0.4"
   zug_utils:
     dependency: "direct main"
     description:
