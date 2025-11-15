@@ -51,11 +51,12 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
     return CustomScrollView(
       slivers: [
         SliverAppBar(
-          expandedHeight: 120,
+          expandedHeight: 72,
           floating: false,
           pinned: true,
           backgroundColor: const Color(0xFF0B5569),
           flexibleSpace: FlexibleSpaceBar(
+            centerTitle: true,
             title: const Text(
               '🦡 MoleChess Help',
               style: TextStyle(
@@ -72,21 +73,7 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
                   colors: [Color(0xFF164E63), Color(0xFF0E7490)],
                 ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 60.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: const [
-                    Text(
-                      'Democracy, deception, and chess strategy collide',
-                      style: TextStyle(
-                        color: Color(0xFFCFFAFE),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+
             ),
           ),
         ),
