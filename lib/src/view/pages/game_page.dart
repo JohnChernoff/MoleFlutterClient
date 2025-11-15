@@ -214,7 +214,6 @@ class CurrentGameState extends State<CurrentGameWidget> {
   }
 
   Widget getBoard(MoleGame game, double boardSize) {
-    bool voteConfirmed = game.lastVote?.recent() ?? false;
     return Container(
       padding: const EdgeInsets.all(3.0),
       color: Colors.grey,
@@ -232,8 +231,12 @@ class CurrentGameState extends State<CurrentGameWidget> {
             enableUserMoves: hoverFEN == null,
             boardOrientation: game.orientation ?? game.getUserSide(widget.client.userName) ?? PlayerColor.white,
             size: boardSize - 6,
-            arrows: voteConfirmed
-                ? [BoardArrow(from: game.lastVote!.move.fromAlgebraic, to: game.lastVote!.move.toAlgebraic)]
+            arrows: game.recentVotes.isNotEmpty
+                ? List.generate(game.recentVotes.length, (i) {
+                  MoveVote vote = game.recentVotes.elementAt(i);
+                  return BoardArrow(from: vote.move.from, to: vote.move.to, color: vote.player ? Colors.blue.withValues(alpha: 77) : Color.fromARGB(77, 222, 55, 0)
+                );
+                })
                 : getArrows(historySnapshot),
             onMove: widget.client.sendMove,
             blackPieceColor: Colors.white,

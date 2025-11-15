@@ -46,6 +46,7 @@ enum MolePage {
 }
 enum MoleOption {pieceSet,boardColors,streamerMode}
 enum MoleClip {accuse,defect,rampage,bomb,create,doink,moveBlack,moveWhite,vote,roleInspector,roleMole,rolePlayer}
+enum MoveVoteDisplay {hide,display,arrows}
 
 class MoleModel extends ZugModel {
   MolePage page = MolePage.lobby;
@@ -77,7 +78,8 @@ class MoleModel extends ZugModel {
       MoleServMsg.pgn : handlePGN,
       MoleServMsg.announce : handleAlertMsg,
       MoleServMsg.events : handleEvents,
-      MoleServMsg.confirmMove : handleMoveConfirmation,
+      MoleServMsg.confirmMoveVote : handleVoteMoveConfirmation,
+      MoleServMsg.confirmMoveVoteX : handleVoteMoveXConfirmation,
     });
     loadChessgroundPieceSets();
     loadOptions([
@@ -86,6 +88,8 @@ class MoleModel extends ZugModel {
       List.generate(cb.BoardColor.values.length, (i) => cb.BoardColor.values.elementAt(i).name))),
       (MoleOption.streamerMode,ZugOption(false,label: "Streamer Mode"))
     ]);
+
+    registerEnum<MoveVoteDisplay>(MoveVoteDisplay.values);
 
     for (MoleClip clip in MoleClip.values) { //print("Loading: ${clip.name}");
       clips.putIfAbsent(clip.name, () => AssetSource("audio/clips/${clip.name}.mp3"));
@@ -204,17 +208,27 @@ class MoleModel extends ZugModel {
     }
   }
 
-  void handleMoveConfirmation(data) {
+  void handleVoteMoveConfirmation(data) {
     Area game = getOrCreateArea(data);
     if (game is MoleGame && game == currentArea) {
-      String moveStr = data['move'];
-      if (game.lastVote != null) {
-        if (game.lastVote!.moveString == moveStr) {
-          game.lastVote!.confirm();
-          Future.delayed(Duration(milliseconds: game.lastVote!.animationTime + 50)).then((v) => notifyListeners());
-        }
-      }
+      addNewMoveVote(game,data['move'],true);
     }
+  }
+
+  void handleVoteMoveXConfirmation(data) { //TODO: merge with above
+    Area game = getOrCreateArea(data);
+    if (game is MoleGame && game == currentArea) {
+      addNewMoveVote(game,data['move'],false);
+    }
+  }
+
+  void addNewMoveVote(MoleGame game, String moveStr, bool player) {
+    MoveVote vote = MoveVote(moveStr, player);
+    game.recentVotes.add(vote);
+    Future.delayed(Duration(milliseconds: vote.animationTime + 50)).then((v) {
+      game.recentVotes.remove(vote);
+      notifyListeners();
+    });
   }
 
   void getTop(int n) {
@@ -386,7 +400,7 @@ class MoleModel extends ZugModel {
       "promotion" : lastMove.promotion?.name ?? ""
     });
     chessBoardController.undoMove();
-    getCurrentGame().lastVote = MoleVote(lastMove);
+    //getCurrentGame().lastVote = MoveVote(lastMove);
   }
 
   IMap<String, ISet<String>> getLegalMoves() { //print("Generating legal moves for: ${getCurrentGame().fen}");

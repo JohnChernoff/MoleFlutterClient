@@ -1,25 +1,16 @@
+import 'package:chessground/chessground.dart' as cg;
 import 'package:chess/chess.dart' as dc;
 import 'package:zugclient/zug_area.dart';
 import 'package:zugclient/zug_user.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart';
 import 'mole_fields.dart';
 
-class MoleVote {
-  bool confirmed = false;
+class MoveVote {
   int animationTime = 1000;
-  dc.Move move;
-  int? timestamp;
-  MoleVote(this.move);
-  bool recent() {
-    return confirmed && timestamp != null &&
-      (DateTime.now().millisecondsSinceEpoch - timestamp!) < animationTime;
-  }
-  void confirm({int? millis}) {
-    if (millis != null) animationTime = millis;
-    confirmed = true;
-    timestamp = DateTime.now().millisecondsSinceEpoch;
-  }
-  String get moveString => "${move.fromAlgebraic}${move.toAlgebraic}";
+  cg.Move move;
+  bool player;
+  MoveVote(String moveStr, this.player) : move = cg.Move(from: moveStr.substring(0,2), to: moveStr.substring(2,4));
+  String get moveString => "${move.from}${move.to}";
 }
 
 class MoleGame extends Area {
@@ -28,7 +19,7 @@ class MoleGame extends Area {
   List<dynamic> moves = [];
   List<dynamic> chat = [];
   PlayerColor? orientation;
-  MoleVote? lastVote;
+  List<MoveVote> recentVotes = [];
 
   MoleGame(super.data);
 
