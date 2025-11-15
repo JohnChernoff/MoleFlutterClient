@@ -111,7 +111,7 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'The Mole can be removed by (unanimous) vote, but be careful - a team can only vote once and if they get it wrong, the mole cannot be voted out! ',
+                        'The Mole can be removed by (unanimous) vote, but be careful - a team can only vote once and if they get it wrong, the mole can no longer be voted out! ',
                         style: TextStyle(
                           color: Colors.grey[400],
                           height: 1.5,
@@ -255,7 +255,7 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
         _buildBulletList([
           'Games are White vs. Black - two teams competing at chess',
           'Each team has a minimum of three players',
-          'Every turn, all active players vote on one move to play',
+          'Every turn, all active players vote on the move to play',
           'The move with the most votes wins and is executed',
           'If multiple moves tie, one is chosen at random',
         ]),
@@ -264,10 +264,10 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
         _buildBulletList(
           [
             'Standard Chess Victory:',
-            '  • Checkmate the opposing king',
-            '  • Opponent resigns (by majority vote)',
+            'Checkmate the opposing king',
+            'Opponent resigns (by majority vote)',
             'Mole Victory (Sabotage):',
-            '  • The Mole\'s team loses',
+            'The Mole\'s team loses',
           ],
           fontSize: 13,
         ),
