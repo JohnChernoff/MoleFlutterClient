@@ -5,6 +5,7 @@ import 'package:zugclient/zug_fields.dart';
 import 'package:zugclient/zug_user.dart';
 import '../../model/mole_model.dart';
 import '../../model/mole_fields.dart';
+import 'package:mole_app/src/model/mole_game.dart';
 
 class TimeSelectDialogOptions extends StatelessWidget {
   const TimeSelectDialogOptions({super.key});

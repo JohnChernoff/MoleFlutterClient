@@ -9,6 +9,7 @@ import "package:universal_html/html.dart" as html;
 import 'package:zugclient/zug_model.dart';
 import 'package:zugclient/zug_user.dart';
 import '../../model/mole_fields.dart';
+import 'package:mole_app/src/model/mole_game.dart';
 
 class MoleLobbyPage extends LobbyPage {
   final Map<int,Color> colorMap = {

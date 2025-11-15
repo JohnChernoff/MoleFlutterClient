@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:chess/chess.dart' as dc;
-import 'package:chessground/chessground.dart';
+import 'package:chessground/chessground.dart' as cg;
 import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_chess_board/flutter_chess_board.dart';
+import 'package:flutter_chess_board/flutter_chess_board.dart' as cb;
 import 'package:mole_app/src/view/components/mole_dialogs.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:zug_utils/zug_dialogs.dart';
@@ -19,6 +19,7 @@ import 'package:zugclient/zug_fields.dart';
 import 'package:zugclient/zug_model.dart';
 import 'package:zugclient/zug_option.dart';
 import 'package:zugclient/zug_user.dart';
+import 'package:mole_app/src/model/mole_game.dart';
 import '../../firebase_options.dart';
 import 'package:flutter/services.dart';
 import 'mole_fields.dart';
@@ -26,41 +27,9 @@ import 'mole_event.dart';
 
 //TODO: ZugOptions, Lobby dimensions
 
-class MoleGame extends Area {
-
-  String fen = initialFen;
-  List<dynamic> moves = [];
-  List<dynamic> chat = [];
-  PlayerColor? orientation;
-
-  MoleGame(super.data);
-
-  SideToMove sideToMove() {
-    return fen.split(" ")[1] == "w" ? SideToMove.white : SideToMove.black;
-  }
-
-  PlayerColor? getUserSide(UniqueName? userName) {
-    if (userName == null) return null;
-    dynamic player = getOccupant(userName);
-    if (player == null) return null;
-    return colorMap[player[MoleFields.moleFieldSide]];
-  }
-
-  String getPhaseString() {
-    if (phase == ZugPhase.undefined) return " (?) ";
-    if (phase == MolePhase.pregame) return " (open) ";
-    if (phase == MolePhase.postgame) return " (closing) ";
-    return " (running) ";
-  }
-
-  @override
-  List<Enum> getPhases() => MolePhase.values;
-
-}
-
 class CustomPieceSet {
   String name;
-  IMap<PieceKind, AssetImage> pieceSet;
+  IMap<cg.PieceKind, AssetImage> pieceSet;
   CustomPieceSet(this.name,this.pieceSet);
 }
 
@@ -87,7 +56,7 @@ class MoleModel extends ZugModel {
   Map<String,dynamic> playerHistory = {};
   bool confirmAI = false;
   List<CustomPieceSet> customSets = [];
-  ChessBoardController chessBoardController = ChessBoardController();
+  cb.ChessBoardController chessBoardController = cb.ChessBoardController();
   Map<String,AssetSource> clips = {};
 
   MoleModel(super.domain, super.port, super.remoteEndpoint, super.prefs, {super.javalinServer, super.localServer}) {
@@ -108,11 +77,13 @@ class MoleModel extends ZugModel {
       MoleServMsg.pgn : handlePGN,
       MoleServMsg.announce : handleAlertMsg,
       MoleServMsg.events : handleEvents,
+      MoleServMsg.confirmMove : handleMoveConfirmation,
     });
     loadChessgroundPieceSets();
     loadOptions([
       (MoleOption.pieceSet,ZugOption(customSets.last.name,label: "Piece Set", enums: List.generate(customSets.length, (i) => customSets.elementAt(i).name))),
-      (MoleOption.boardColors,ZugOption(BoardColor.green.name,label: "Board Color",enums: List.generate(BoardColor.values.length, (i) => BoardColor.values.elementAt(i).name))),
+      (MoleOption.boardColors,ZugOption(cb.BoardColor.green.name,label: "Board Color",enums:
+      List.generate(cb.BoardColor.values.length, (i) => cb.BoardColor.values.elementAt(i).name))),
       (MoleOption.streamerMode,ZugOption(false,label: "Streamer Mode"))
     ]);
 
@@ -135,7 +106,7 @@ class MoleModel extends ZugModel {
   getGame(dynamic data) => getOrCreateArea(data) as MoleGame;
 
   void loadChessgroundPieceSets() {
-    for (var set in PieceSet.values) {
+    for (var set in cg.PieceSet.values) {
       customSets.add(CustomPieceSet(set.name, set.assets));
     }
     customSets.add(CustomPieceSet("mole", MoleFields.moleSet));
@@ -233,6 +204,19 @@ class MoleModel extends ZugModel {
     }
   }
 
+  void handleMoveConfirmation(data) {
+    Area game = getOrCreateArea(data);
+    if (game is MoleGame && game == currentArea) {
+      String moveStr = data['move'];
+      if (game.lastVote != null) {
+        if (game.lastVote!.moveString == moveStr) {
+          game.lastVote!.confirm();
+          Future.delayed(Duration(milliseconds: game.lastVote!.animationTime + 50)).then((v) => notifyListeners());
+        }
+      }
+    }
+  }
+
   void getTop(int n) {
     send(MoleServMsg.top,data: {"n" : n}, responseType: MoleServMsg.top);
   }
@@ -316,19 +300,19 @@ class MoleModel extends ZugModel {
   void handleResult(data) { //TODO: figure out side better
     Area game = getOrCreateArea(data);
     if (game is MoleGame && game == currentArea) {
-      PlayerColor? winner = colorMap[data["result"]];
+      cb.PlayerColor? winner = colorMap[data["result"]];
       String winnerString = switch(winner) {
         null => "Nobody",
-        PlayerColor.black => "Black",
-        PlayerColor.white => "White",
+        cb.PlayerColor.black => "Black",
+        cb.PlayerColor.white => "White",
       };
       Image moleImg = switch(winner) {
         null => Image(image: ZugUtils.getAssetImage("images/mole_sprite_transparent.gif")),
-        PlayerColor.black =>  Image(image: ZugUtils.getAssetImage("images/mole_sprite_black.gif")),
-        PlayerColor.white => Image(image: ZugUtils.getAssetImage("images/mole_sprite_white.gif")),
+        cb.PlayerColor.black =>  Image(image: ZugUtils.getAssetImage("images/mole_sprite_black.gif")),
+        cb.PlayerColor.white => Image(image: ZugUtils.getAssetImage("images/mole_sprite_white.gif")),
       };
 
-      PlayerColor? side = game.getUserSide(userName);
+      cb.PlayerColor? side = game.getUserSide(userName);
       String track;
 
       if (winner == null) {
@@ -402,6 +386,7 @@ class MoleModel extends ZugModel {
       "promotion" : lastMove.promotion?.name ?? ""
     });
     chessBoardController.undoMove();
+    getCurrentGame().lastVote = MoleVote(lastMove);
   }
 
   IMap<String, ISet<String>> getLegalMoves() { //print("Generating legal moves for: ${getCurrentGame().fen}");
@@ -430,7 +415,7 @@ class MoleModel extends ZugModel {
   // sets game.orientation (if unset, flips based on getUserSide(user))
   void flipBoard() {
     MoleGame game = getCurrentGame();
-    game.orientation = (game.orientation ?? game.getUserSide(userName)) == PlayerColor.white ? PlayerColor.black : PlayerColor.white;
+    game.orientation = (game.orientation ?? game.getUserSide(userName)) == cb.PlayerColor.white ? cb.PlayerColor.black : cb.PlayerColor.white;
     notifyListeners();
   }
 

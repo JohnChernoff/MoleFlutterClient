@@ -14,6 +14,7 @@ import '../components/mole_menu.dart';
 import '../../model/mole_model.dart';
 import '../components/mole_clock.dart';
 import '../../model/mole_fields.dart';
+import 'package:mole_app/src/model/mole_game.dart';
 
 class CurrentGameWidget extends StatefulWidget {
   final MoleModel client;
@@ -186,7 +187,7 @@ class CurrentGameState extends State<CurrentGameWidget> {
   }
 
   Widget buildPortrait(MoleGame cg, BuildContext context, BoxConstraints bc) {
-    List<Widget> headButts = getBoardHeaderButtons(widget.client,bc.maxWidth);
+    //List<Widget> headButts = getBoardHeaderButtons(widget.client,bc.maxWidth);
     final Widget statBox = Container( //decoration: ZugChat.getDecoration(color: Colors.brown, borderWidth: 4),
       color: Colors.brown,
       child: getStatusWidget(cg, bc.maxWidth, 128, historySnapshot),
@@ -212,22 +213,34 @@ class CurrentGameState extends State<CurrentGameWidget> {
     )));
   }
 
-  Widget getBoard(MoleGame game, double boardSize) { //final String fen = hoverFEN ?? game.fen; //print("Generating board: $fen");
+  Widget getBoard(MoleGame game, double boardSize) {
+    bool voteConfirmed = game.lastVote?.recent() ?? false;
     return Container(
-        padding: const EdgeInsets.all(3.0),
-        color: Colors.grey,
-        child: ChessBoard(
-      dragHighlightColor: Colors.orange,
-      boardColor: BoardColor.values.singleWhere((element) => element.name == widget.client.getOption(MoleOption.boardColors)?.getString(),orElse: () => BoardColor.green),
-      pieceSet: widget.client.getOption(MoleOption.pieceSet)?.getString() ?? "mole",
-      controller: widget.client.chessBoardController,
-      enableUserMoves: hoverFEN == null,
-      boardOrientation: game.orientation ?? game.getUserSide(widget.client.userName) ?? PlayerColor.white,
-      size: boardSize-6,
-      arrows: getArrows(historySnapshot),
-      onMove: widget.client.sendMove,
-      blackPieceColor: Colors.white,
-    ));
+      padding: const EdgeInsets.all(3.0),
+      color: Colors.grey,
+      child: Stack(
+        alignment: AlignmentGeometry.center,
+        children: [
+          ChessBoard(
+            dragHighlightColor: Colors.orange,
+            boardColor: BoardColor.values.singleWhere(
+                  (element) => element.name == widget.client.getOption(MoleOption.boardColors)?.getString(),
+              orElse: () => BoardColor.green,
+            ),
+            pieceSet: widget.client.getOption(MoleOption.pieceSet)?.getString() ?? "mole",
+            controller: widget.client.chessBoardController,
+            enableUserMoves: hoverFEN == null,
+            boardOrientation: game.orientation ?? game.getUserSide(widget.client.userName) ?? PlayerColor.white,
+            size: boardSize - 6,
+            arrows: voteConfirmed
+                ? [BoardArrow(from: game.lastVote!.move.fromAlgebraic, to: game.lastVote!.move.toAlgebraic)]
+                : getArrows(historySnapshot),
+            onMove: widget.client.sendMove,
+            blackPieceColor: Colors.white,
+          ),
+        ],
+      ),
+    );
   }
 
   Widget getMoveList(MoleGame cg, double width, double height, bool landscape) {
