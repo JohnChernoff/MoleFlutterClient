@@ -116,7 +116,7 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'MoleChess is a democratic chess game where teams of players vote on each move together. But here\'s the twist: one player on each team is secretly a Mole trying to sabotage their team\'s chess performance to lose the game.',
+                        'MoleChess is a chess game where teams of players vote on each move together. One player on each team is secretly a Mole trying to sabotage their team in order to lose the game.',
                         style: TextStyle(
                           color: Color(0xFFD1D5DB),
                           height: 1.5,
@@ -124,7 +124,7 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        'Players must balance playing strong chess with identifying and eliminating the Mole through strategic voting. The tension comes from not knowing who to trust—good play or good deception?',
+                        'The Mole can be removed by (unanimous) vote, but be careful - a team can only vote once and if they get it wrong, the mole cannot be voted out! ',
                         style: TextStyle(
                           color: Colors.grey[400],
                           height: 1.5,
@@ -267,11 +267,10 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
         _buildSubheading('🎮 How It Works'),
         _buildBulletList([
           'Games are White vs. Black - two teams competing at chess',
-          'Each team has 3+ players (configurable up to 12 per team)',
+          'Each team has a minimum of three players',
           'Every turn, all active players vote on one move to play',
           'The move with the most votes wins and is executed',
           'If multiple moves tie, one is chosen at random',
-          'Games progress through phases: Pregame → Voting → Postgame',
         ]),
         const SizedBox(height: 16),
         _buildSubheading('🏁 Winning Conditions'),
@@ -280,9 +279,8 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
             'Standard Chess Victory:',
             '  • Checkmate the opposing king',
             '  • Opponent resigns (by majority vote)',
-            '  • Opponent runs out of time',
             'Mole Victory (Sabotage):',
-            '  • The Mole\'s team loses at chess',
+            '  • The Mole\'s team loses',
           ],
           fontSize: 13,
         ),
@@ -290,7 +288,7 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
         _buildSubheading('📊 Game Phases'),
         _buildBulletList([
           'Pregame: Players join teams',
-          'Voting: Each turn, players propose and vote on moves (default 15 seconds)',
+          'Voting: Each turn, players vote for moves by playing them on their board',
           'Postgame: Game review period before closing (default 60 seconds)',
         ]),
       ],
@@ -309,10 +307,10 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
           details: [
             'One Mole per team (assigned randomly at game start)',
             'Knows their role immediately, others don\'t',
-            'Can vote on moves like everyone else',
+            'Can vote for moves like everyone else',
             'Earns points if their team loses at chess',
-            'Can be voted out by their team (majority vote)',
-            'If voted out, the Mole\'s role is revealed to everyone',
+            'Can be voted out by their team (unanimous vote)',
+            'If voted out, the Mole defects to the other side and becomes a regular player',
           ],
         ),
         const SizedBox(height: 16),
@@ -326,9 +324,7 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
             'Does NOT know who the Mole is at the start',
             'Must deduce the Mole through observation and inspection',
             'Can inspect player moves after turn 12 (configurable)',
-            '⚠️ Risk: When you inspect, you ALSO make a random move',
-            'This random vote is submitted instead of your normal vote',
-            'Could accidentally vote for a terrible move yourself!',
+            '⚠️ Risk: When you inspect, you ALSO vote for a random move!',
             'Frequent inspections make you look suspicious to others',
             'Each inspection resets the inspection cooldown timer',
           ],
@@ -361,10 +357,9 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
       children: [
         _buildSubheading('🗳️ How Voting Works Each Turn'),
         _buildNumberedList([
-          'Voting Phase Starts - All active players can propose a move',
-          'Players Vote - Each player clicks a square and drag to vote for one move',
+          'Voting Phase Starts - All active players can vote for a move by playing it on their board',
           'Move Tallying - The system counts votes in real-time',
-          'Winner Selected - After the timer (15 sec default), the most-voted move wins',
+          'Winner Selected - After the timer expires or everyone on the team votes, the most-voted move wins',
           'Move Executed - The winning move is played on the board',
           'Next Turn - Process repeats with the next team to move',
         ]),
@@ -387,9 +382,9 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
           'AI players always vote (bots fill empty slots)',
         ]),
         const SizedBox(height: 16),
-        _buildSubheading('👁️ Hide Votes Option'),
+        _buildSubheading('👁️ Vote Display Style Option'),
         Text(
-          'If "Hide Votes" is enabled (default), you won\'t see other players\' moves in real-time. This makes it harder to identify patterns of sabotage.',
+          'If "Vote Display Style" is set to "hidden" you won\'t see other players\' moves in real-time. This makes it harder to identify patterns of sabotage.',
           style: TextStyle(
             fontSize: 13,
             color: Colors.grey[400],
@@ -536,7 +531,6 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
         _buildBulletList([
           'Click & Drag: Click a piece\'s starting square, drag to destination to propose a move',
           'Promotion: Select piece type when pawn reaches the back rank',
-          'Undo: Accidental vote? Usually you can undo before submission',
           'View Votes: See other players\' proposed moves (unless hidden)',
         ]),
         const SizedBox(height: 16),
