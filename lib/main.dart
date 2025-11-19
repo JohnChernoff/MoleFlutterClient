@@ -135,4 +135,22 @@ class MoleApp extends ZugApp {
 
 class MoleHome extends ZugHome {
   const MoleHome({super.key, required super.app});
+
+  @override
+  Widget getNavBar(ZugModel model,
+      { decoration, tintColor, iconColor, indicatorColor, orientation}) =>
+      super.getNavBar(model,decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.black, Colors.pink, Colors.brown],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 8,
+          ),
+        ],
+      ));
+
 }

@@ -50,11 +50,13 @@ class MoleLobbyPage extends LobbyPage {
     }
     return Expanded(child: Column(
       children: [
-        Text("Forming games: "),
+        Center(child: Text("Click to select a game below (double click to go the board)")),
+        Divider(),
+        Text("Forming games"),
         getGameList(statusMap[MoleGameStatus.pregame] ?? [],onSelected),
-        Text("Running games: "),
+        Text("Running games"),
         getGameList(statusMap[MoleGameStatus.playing] ?? [],onSelected),
-        Text("Finished games: "),
+        Text("Finished games"),
         getGameList(statusMap[MoleGameStatus.finished] ?? [],onSelected),
       ],
     ));
@@ -96,8 +98,16 @@ class MoleLobbyPage extends LobbyPage {
             final uName = nameList.elementAt(i);
             final data = game.occupantMap[uName]; //print("User data: $data");
             Color? color = colorMap[data['game_col']];
-            return uName.toWidget(color: Colors.black, bkgColor: color == Colors.white ? Colors.brown : Colors.cyan);
+            return uName.toWidget(color: Colors.black, bkgColor: color == Colors.white
+                ? Colors.brown
+                : color == Colors.black ? Colors.cyanAccent : Colors.grey);
           })),
+          if (model.currentArea == model.areas[title]) IconButton(
+            onPressed: () {
+              model.goToPage(PageType.options);
+            }, //icon: const Icon(Icons.copy),
+            icon: const Icon(Icons.settings), //Text("Link", style: TextStyle(color: Colors.blueGrey)),
+          ),
     ])));
   }
 

@@ -4,6 +4,7 @@ import '../../model/mole_model.dart';
 import '../../model/mole_fields.dart';
 
 class MoleOptionsPage extends StatefulWidget {
+  final bool notificationOptions = false;
   final MoleModel client;
 
   const MoleOptionsPage(this.client, {super.key});
@@ -17,7 +18,7 @@ class _MoleOptionsPageState extends State<MoleOptionsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool inGame = widget.client.currentArea.id != noGameTitle;
+    final bool inGame = widget.client.currentArea != widget.client.noArea;
 
     return ColoredBox(color: Colors.black, child: DefaultTabController(length: inGame ? 2 : 1, child: Column(
       children: [
@@ -47,7 +48,7 @@ class _MoleOptionsPageState extends State<MoleOptionsPage> {
             //optionsDropdownCBkgCol: Colors.cyan,
             //optionsTextColor: Colors.black,
             customHeader: const SizedBox.shrink())),
-        Row(
+        if (widget.notificationOptions) Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text("Notifications:  "),
