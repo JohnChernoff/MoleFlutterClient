@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:zugclient/zug_app.dart';
 import '../../model/mole_model.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/lobby_page.dart';
@@ -65,6 +66,10 @@ class MoleLobbyPage extends LobbyPage {
           String title = titles.elementAt(i);
           return InkWell(
               onTap: () => model.currentArea == model.areas[title] ? onSelected(noGameTitle) : onSelected(title),
+              onDoubleTap: () {
+                onSelected(title);
+                model.goToPage(PageType.main);
+              },
               child: getGameItem(title,model.areas[title] as MoleGame))
           ;
         })
