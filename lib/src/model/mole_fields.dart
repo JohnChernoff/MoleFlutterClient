@@ -8,7 +8,6 @@ enum MoleServMsg {announce,top,history,info,users,moveUpdate,ready,side,confirmM
   startGame,result,version,finger,pgn,events}
 enum MoleClientMsg {pushToken,notify,top,history,cmd,role,status,veto,draw,resign,kickoff,voteoff,move,abort,inspect,bomb,version,finger,pgn,moveHistory,events}
 enum PlayerAction {accuse,kick,ban,finger,whisper,cancel}
-enum MolePhase {pregame,voting,veto,postgame}
 
 const kDebugMode = true;
 const noGameTitle = "";
@@ -46,14 +45,33 @@ class MoleFields {
     NotificationType.login.name : false,
   };
 
-  static const String
-      moleFieldPlayer = "player",
-      moleFieldMove = "move",
-      moleFieldTime = "time",
-      moleFieldPromotion = "promotion",
-      moleFieldConfirm = "confirm",
-      moleFieldSide = "game_col",
-      moleFieldAction = "action";
+  static const String player = "player",
+      move = "move",
+      votes = "votes",
+      time = "time",
+      turn = "turn",
+      promotion = "promotion",
+      confirm = "confirm",
+      side = "game_col",
+      ready = "ready",
+      winner = "winner",
+      result = "result",
+      unbalanced = "unbalanced",
+      insufficient = "insufficient";
+
+  static const String action = "action";
 }
+
+/*
+  static const String
+      player = "player",
+      move = "move",
+      time = "time",
+      promotion = "promotion",
+      confirm = "confirm",
+      side = "game_col",
+      winner = "winner",
+      result = "result";
+ */
 
 

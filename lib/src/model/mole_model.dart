@@ -24,6 +24,8 @@ import '../../firebase_options.dart';
 import 'package:flutter/services.dart';
 import 'mole_fields.dart';
 import 'mole_event.dart';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
 
 //TODO: ZugOptions, Lobby dimensions
 
@@ -59,6 +61,7 @@ class MoleModel extends ZugModel {
   List<CustomPieceSet> customSets = [];
   cb.ChessBoardController chessBoardController = cb.ChessBoardController();
   Map<String,AssetSource> clips = {};
+  final GlobalKey boardCaptureKey = GlobalKey();
 
   MoleModel(super.domain, super.port, super.remoteEndpoint, super.prefs, {super.javalinServer, super.localServer}) {
     modelName = "mole_client";
@@ -107,7 +110,7 @@ class MoleModel extends ZugModel {
     }
   }
 
-  getGame(dynamic data) => getOrCreateArea(data) as MoleGame;
+  MoleGame getGame(dynamic data) => getOrCreateArea(data) as MoleGame;
 
   void loadChessgroundPieceSets() {
     for (var set in cg.PieceSet.values) {
@@ -164,7 +167,7 @@ class MoleModel extends ZugModel {
   }
 
   void handlePlayerAction(Map<String, dynamic> action) { //print(action);
-    if (action[MoleFields.moleFieldAction] == PlayerAction.accuse) {
+    if (action[MoleFields.action] == PlayerAction.accuse) {
       ZugDialogs.confirm("Accuse ${action[fieldUniqueName]}?").then((confirmed) {
         if (confirmed) {
           send(MoleClientMsg.voteoff, data: {
@@ -174,7 +177,7 @@ class MoleModel extends ZugModel {
         }
       });
     }
-    else if (action[MoleFields.moleFieldAction] == PlayerAction.kick) {
+    else if (action[MoleFields.action] == PlayerAction.kick) {
       ZugDialogs.confirm("Kick ${action[fieldUniqueName]}?").then((confirmed) {
         if (confirmed) {
           send(MoleClientMsg.kickoff, data: {
@@ -184,7 +187,7 @@ class MoleModel extends ZugModel {
         }
       });
     }
-    else if (action[MoleFields.moleFieldAction] == PlayerAction.ban) {
+    else if (action[MoleFields.action] == PlayerAction.ban) {
       ZugDialogs.confirm("Ban ${action[fieldUniqueName]}?").then((confirmed) {
         if (confirmed) {
           send(ClientMsg.ban, data: {
@@ -194,12 +197,12 @@ class MoleModel extends ZugModel {
         }
       });
     }
-    else if (action[MoleFields.moleFieldAction] == PlayerAction.finger) {
+    else if (action[MoleFields.action] == PlayerAction.finger) {
       send(MoleClientMsg.finger, data: {
         fieldName: action[fieldUniqueName].toJSON(),
       });
     }
-    else if (action[MoleFields.moleFieldAction] == PlayerAction.whisper) {
+    else if (action[MoleFields.action] == PlayerAction.whisper) {
       ZugDialogs.getString("Enter a whisper to ${action[fieldUniqueName]}", "").then((msg) =>
       send(ClientMsg.privMsg, data: {
         fieldName: action[fieldUniqueName].toJSON(),
@@ -311,38 +314,15 @@ class MoleModel extends ZugModel {
     if (clips.containsKey(n)) playAudio(clips[n]!,clip: true);
   }
 
-  void handleResult(data) { //TODO: figure out side better
+  Future<void> handleResult(data) async {
     Area game = getOrCreateArea(data);
     if (game is MoleGame && game == currentArea) {
-      cb.PlayerColor? winner = colorMap[data["result"]];
-      String winnerString = switch(winner) {
-        null => "Nobody",
-        cb.PlayerColor.black => "Black",
-        cb.PlayerColor.white => "White",
-      };
-      Image moleImg = switch(winner) {
-        null => Image(image: ZugUtils.getAssetImage("images/mole_sprite_transparent.gif")),
-        cb.PlayerColor.black =>  Image(image: ZugUtils.getAssetImage("images/mole_sprite_black.gif")),
-        cb.PlayerColor.white => Image(image: ZugUtils.getAssetImage("images/mole_sprite_white.gif")),
-      };
-
-      cb.PlayerColor? side = game.getUserSide(userName);
-      String track;
-
-      if (winner == null) {
-        track = "mole_intro2"; //TODO: draw music
+      game.setResult(data);
+      if (game.result != null && game.boardImg == null) {
+        print ("Capturing game image for result: ${game.result}");
+        game.boardImg = await captureWidget(boardCaptureKey);
       }
-      else if (winner == side) {
-        int i = Random().nextInt(4) + 1;
-        track = "mole_victory${i.toString()}";
-      }
-      else {
-        track = "mole_defeat";
-      }
-
-      ZugDialogs.showClickableDialog(
-          MusicStackDialog(this,track,[MoleDance("Game Over: $winnerString Wins!",moleImg)])
-      );
+      //ZugDialogs.showClickableDialog(MusicStackDialog(this,game.getGameTrack(),[MoleDance("Game Over: $winnerString Wins!",moleImg)]));
     }
   }
 
@@ -370,6 +350,13 @@ class MoleModel extends ZugModel {
       );
     }
     return super.handleNewPhase(data);
+  }
+
+  @override
+  void handleStart(data) {
+    getGame(data).gameState = MoleGameState.playing;
+    //TODO: play start music/animation
+    return super.handleStart(data);
   }
 
   void handleMove(data) { //print("New Move: ${jsonEncode(data).toString()}");
@@ -466,6 +453,36 @@ class MoleModel extends ZugModel {
   void copyGameLink(MoleGame game) {
     String link = "https://molechess.com?goto=${game.id}";
     Clipboard.setData(ClipboardData(text: link)).then((value) => ZugDialogs.popup("Copied game link to clipboard: $link"));
+  }
+
+  Future<ui.Image?> captureWidget(
+      GlobalKey key, {
+        double pixelRatio = 1.0,
+      }) async {
+    try {
+      final RenderRepaintBoundary boundary =
+      key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+
+      //if (!boundary.isRepainted) { await Future.delayed(const Duration(milliseconds: 100)); }
+
+      final ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
+      return image;
+    } catch (e) {
+      print('Error capturing widget: $e');
+      return null;
+    }
+  }
+
+  Future<Uint8List?> captureWidgetAsPNG(
+      GlobalKey key, {
+        double pixelRatio = 1.0,
+      }) async {
+    final image = await captureWidget(key, pixelRatio: pixelRatio);
+    if (image != null) {
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      return byteData?.buffer.asUint8List();
+    }
+    return null;
   }
 
 }

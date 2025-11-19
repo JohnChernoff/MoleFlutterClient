@@ -143,7 +143,7 @@ class PlayerOptionsDialog extends StatelessWidget {
 
   Map<String,dynamic> getAction(PlayerAction action) {
     return {
-      MoleFields.moleFieldAction : action,
+      MoleFields.action : action,
       fieldAreaID : game.id,
       fieldUniqueName : playerName
     };
