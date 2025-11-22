@@ -1,10 +1,12 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart' hide Color;
 import 'package:mole_app/main.dart';
 import 'package:mole_app/src/view/components/mole_dialogs.dart';
-import 'package:mole_app/src/view/components/vote_list.dart';
+import 'package:mole_app/src/view/components/compact_vote_list.dart';
 import 'package:mole_app/src/view/components/rematch_widget.dart';
 import 'package:zug_utils/zug_dialogs.dart';
 import 'package:zug_utils/zug_utils.dart';
@@ -42,6 +44,7 @@ class CurrentGameState extends State<CurrentGameWidget> {
   //FToast toast = FToast();
   int selectedPly = 0;
   Map<String,dynamic> displayedVotes = {};
+  Offset mousePos = Offset(0,0);
 
   bool _onKey(KeyEvent event) {
     final key = event.logicalKey.keyLabel;
@@ -143,48 +146,50 @@ class CurrentGameState extends State<CurrentGameWidget> {
       ),
     );
 
-    final Widget chatOrVotes = //Padding(padding: EdgeInsets.only(right: 4, top: 4), child:
-    Stack(children: [
-      ZugChat(
-        widget.client,
-        height: bc.maxHeight - statusHeight,
-        areaName: "Game",
-        serverName: "Lobby",
-        borderColor: Colors.grey,
-        cmdBkgColor: Colors.brown,
-      ),
-      if (displayedVotes.isNotEmpty) VoteList(displayedVotes, eastWidth, bc.maxHeight)
-    ]);
-
-    return Row(
-      children: [
-        Container(
-          color: Colors.black,
-          width: boardSize + (moveListWidth * 2),
-          child: Column(
-            children: [ //const Divider(height: 2),
-              header,
-              Row(children: [
-                getMoveList(cg,moveListWidth * 2,boardSize, true),
-                Column(children: [
-                  getBoard(cg, boardSize),
-                  if (statusUnderBoard) statBox,
-                ]),
-              ],
-              ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Column(
-            children: [
-              Expanded(child: chatOrVotes),
-              if (!statusUnderBoard) statBox, //Padding(padding: EdgeInsets.only(top: 4, left: 0, right: 4), child: statBox),
-            ],
-          ),
-        )
-      ],
+    final Widget chatBox = //Padding(padding: EdgeInsets.only(right: 4, top: 4), child:
+    ZugChat(
+      widget.client,
+      height: bc.maxHeight - statusHeight,
+      areaName: "Game",
+      serverName: "Lobby",
+      borderColor: Colors.grey,
+      cmdBkgColor: Colors.brown,
     );
+
+    final mainRow = Row(children: [
+      Container(
+        color: Colors.black,
+        width: boardSize + (moveListWidth * 2),
+        child: Column(
+          children: [ //const Divider(height: 2),
+            header,
+            Row(children: [
+              getMoveList(cg,moveListWidth * 2,boardSize, true),
+              Column(children: [
+                getBoard(cg, boardSize),
+                if (statusUnderBoard) statBox,
+              ]),
+            ],
+            ),
+          ],
+        ),
+      ),
+      Expanded(
+        child: Column(
+          children: [
+            Expanded(child: chatBox),
+            if (!statusUnderBoard) statBox, //Padding(padding: EdgeInsets.only(top: 4, left: 0, right: 4), child: statBox),
+          ],
+        ),
+      )],
+    );
+
+    return Stack(children: [
+      mainRow,
+      Positioned(left: moveListWidth * 2, top: max(0, mousePos.dy - 36), child: displayedVotes.isNotEmpty
+          ? CompactVoteList(displayedVotes)
+          : SizedBox.shrink()),
+    ]);
   }
 
   Widget buildPortrait(MoleGame cg, BuildContext context, BoxConstraints bc) {
@@ -195,7 +200,7 @@ class CurrentGameState extends State<CurrentGameWidget> {
     );
 
     final Widget chatOrVotes =  displayedVotes.isNotEmpty
-        ? VoteList(displayedVotes, bc.maxWidth, bc.maxHeight)
+        ? CompactVoteList(displayedVotes,width:  bc.maxWidth, height: bc.maxHeight)
         : ZugChat(
       widget.client,
       width: bc.maxWidth,
@@ -220,22 +225,17 @@ class CurrentGameState extends State<CurrentGameWidget> {
       height: boardSize,
       padding: const EdgeInsets.all(3.0),
       color: Colors.grey,
-      child: Stack(
-        alignment: AlignmentGeometry.center,
-        children: [
-          switch (game.status) {
-            MoleGameStatus.pregame => getChessBoard(game, boardSize),
-            MoleGameStatus.playing => getChessBoard(game, boardSize),
-            MoleGameStatus.finished => RematchWidget(game, userName: widget.client.userName,
-                onRematch: () => ZugDialogs.confirm("Begin Rematch?").then((b) => {
-                  if (b) widget.client.areaCmd(MoleClientMsg.rematch)
-                }),
-                onRematching: () => widget.client.areaCmd(MoleClientMsg.rematching),
-                board: getChessBoard(game, boardSize/2),size: boardSize),
-            null => getChessBoard(game, boardSize),
-          },
-        ],
-      ),
+      child: switch (game.status) {
+        MoleGameStatus.pregame => getChessBoard(game, boardSize),
+        MoleGameStatus.playing => getChessBoard(game, boardSize),
+        MoleGameStatus.finished => RematchWidget(game, userName: widget.client.userName,
+            onRematch: () => ZugDialogs.confirm("Begin Rematch?").then((b) => {
+              if (b) widget.client.areaCmd(MoleClientMsg.rematch)
+            }),
+            onRematching: () => widget.client.areaCmd(MoleClientMsg.rematching),
+            board: getChessBoard(game, boardSize/2),size: boardSize),
+        null => getChessBoard(game, boardSize),
+      },
     );
   }
 
@@ -325,7 +325,13 @@ class CurrentGameState extends State<CurrentGameWidget> {
       height: moveListHeight,
       child: Container(
         decoration: borderDecoration,
-        child: Center(
+        child: Center(child:
+        MouseRegion(
+          onEnter: (e) {
+            if (widget.hoverMode) {
+              mousePos = e.position;
+            }
+          },
           child: TextButton(
             onHover: (b) {
               if (widget.hoverMode) {
@@ -346,7 +352,7 @@ class CurrentGameState extends State<CurrentGameWidget> {
               style: TextStyle(color: txtColor),
             ),
           ),
-        ),
+        )),
       ),
     );
   }
