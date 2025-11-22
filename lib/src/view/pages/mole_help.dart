@@ -23,7 +23,6 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
   @override
   void initState() {
     super.initState();
-    widget.model.playAudio(AssetSource("audio/tracks/intro.mp3"));
   }
 
   void toggleSection(String section) {
@@ -38,7 +37,7 @@ class _MoleChessHelpPageState extends State<MoleChessHelpPage> {
       children: [
         Center(child: SizedBox(width: 240, height: 128, child:
         ElevatedButton(
-            onPressed: () => widget.model.gotoMolePage(MolePage.lobby),
+            onPressed: () => widget.model.switchLobbyPage(MolePage.lobby),
             child: Row(children: [
               Icon(Icons.keyboard_return),Text(" Back to Lobby")]
             )))),

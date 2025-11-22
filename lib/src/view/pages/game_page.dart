@@ -3,12 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart' hide Color;
 import 'package:mole_app/main.dart';
-import 'package:mole_app/src/view/components/cgol.dart';
 import 'package:mole_app/src/view/components/mole_dialogs.dart';
 import 'package:mole_app/src/view/components/vote_list.dart';
-import 'package:mole_app/src/view/components/result_animation.dart';
-import 'package:mole_app/src/view/components/chess_life.dart';
-import 'package:mole_app/src/view/components/chess_life_grid.dart';
+import 'package:mole_app/src/view/components/rematch_widget.dart';
 import 'package:zug_utils/zug_dialogs.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_chat.dart';
@@ -226,42 +223,18 @@ class CurrentGameState extends State<CurrentGameWidget> {
       child: Stack(
         alignment: AlignmentGeometry.center,
         children: [
-          switch (game.gameState) {
-            MoleGameState.pregame => getChessBoard(game, boardSize),
-            MoleGameState.playing => getChessBoard(game, boardSize),
-            MoleGameState.win => getResultWidget(game),
-            MoleGameState.lose => AttackGameOfLifeWidget(
-              initialFEN: game.fen,
-              boardDisplaySize: boardSize,
-              gridSize: 32,
-              mutationRate: .1,
-              rules: ChessAttackRules(
-                minSurvivalAttacks: 2,
-                maxSurvivalAttacks: 2,  // Only survive if attacked by exactly 1
-                minBirthAttacks: 3,     // Need 3+ attackers to birth
-                maxBirthAttacks: 3,
-              ),
-            ),
-            MoleGameState.draw => getResultWidget(game),
-            MoleGameState.finished => getChessBoard(game, boardSize),
+          switch (game.status) {
+            MoleGameStatus.pregame => getChessBoard(game, boardSize),
+            MoleGameStatus.playing => getChessBoard(game, boardSize),
+            MoleGameStatus.finished => RematchWidget(game, userName: widget.client.userName,
+                onRematch: () => ZugDialogs.confirm("Begin Rematch?").then((b) => {
+                  if (b) widget.client.areaCmd(MoleClientMsg.rematch)
+                }),
+                onRematching: () => widget.client.areaCmd(MoleClientMsg.rematching),
+                board: getChessBoard(game, boardSize/2),size: boardSize),
+            null => getChessBoard(game, boardSize),
           },
         ],
-      ),
-    );
-  }
-
-  Widget getResultWidget(MoleGame game) {
-    return GameResultAnimation(
-      result: game.result ?? GameResult.draw,
-      title: '${game.winnerString} Wins!',
-      subtitle: 'GG', //Victory is yours',
-      onDismiss: () => setState(() {
-        game.gameState = MoleGameState.finished;
-      }),
-      accentColor: Colors.green,
-      backgroundImage: Image(
-        image: game.moleImg,
-        fit: BoxFit.cover,
       ),
     );
   }
@@ -463,7 +436,7 @@ class CurrentGameState extends State<CurrentGameWidget> {
                   child: getPlaylist(PlayerColor.black)),
             ]),
       ),
-      cg.inPhase() ? clock ?? const SizedBox.shrink() : const SizedBox.shrink(),
+      cg.inPhase ? clock ?? const SizedBox.shrink() : const SizedBox.shrink(),
     ]));
   }
 }

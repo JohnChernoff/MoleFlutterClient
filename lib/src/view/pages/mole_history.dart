@@ -32,16 +32,13 @@ class _PlayerHistoryPage extends State<PlayerHistoryPage> {
               widget.model.playerHistory["pgn_list"][index]["pgn"].toString()
           )));
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      widget.model.playAudio(AssetSource("audio/tracks/epic.mp3")); //mole_score.mp3"));
-    });
   }
 
   @override
   Widget build(BuildContext context) { //print(widget.client.playerHistory);
     if (pgnList.isEmpty) {
       return Center(child: ElevatedButton(
-          onPressed: () => widget.model.gotoMolePage(MolePage.lobby),
+          onPressed: () => widget.model.switchLobbyPage(MolePage.lobby),
           child: Text("History not found")));
     }
     final double screenWidth = MediaQuery.of(context).size.width;
@@ -49,7 +46,7 @@ class _PlayerHistoryPage extends State<PlayerHistoryPage> {
       children: [
         Center(child: SizedBox(width: 240, height: 128, child:
         ElevatedButton(
-            onPressed: () => widget.model.gotoMolePage(MolePage.lobby),
+            onPressed: () => widget.model.switchLobbyPage(MolePage.lobby),
             child: Row(children: [
               Icon(Icons.keyboard_return),Text(" Back to Lobby")]
             )))),

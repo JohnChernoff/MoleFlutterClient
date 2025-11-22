@@ -72,10 +72,8 @@ class MoleApp extends ZugApp {
   @override
   Widget createLobbyPage(ZugModel model) {
     if (model is MoleModel) {
-      return switch(model.page) {
-        MolePage.game => getLobbyPage(model),
+      return switch(model.lobbyPage) {
         MolePage.lobby => getLobbyPage(model),
-        MolePage.options => getLobbyPage(model),
         MolePage.help => MoleChessHelpPage(model),
         MolePage.top => MoleScorePage(model),
         MolePage.history => PlayerHistoryPage(model),

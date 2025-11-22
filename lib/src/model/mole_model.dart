@@ -36,22 +36,20 @@ class CustomPieceSet {
 }
 
 enum MolePage {
-  game(PageType.main),
-  lobby(PageType.lobby),
-  options(PageType.options),
-  help(PageType.lobby),
-  top(PageType.lobby),
-  events(PageType.lobby),
-  history(PageType.lobby);
-  final PageType zugPage;
-  const MolePage(this.zugPage);
+  lobby("lobby"),
+  help("fugue"),
+  top("scores"),
+  events("events"),
+  history("clue");
+  final String track;
+  const MolePage(this.track);
 }
 enum MoleOption {pieceSet,boardColors,streamerMode}
 enum MoleClip {accuse,defect,rampage,bomb,create,doink,moveBlack,moveWhite,vote,roleInspector,roleMole,rolePlayer}
 enum MoveVoteDisplay {hide,display,arrows}
 
 class MoleModel extends ZugModel {
-  MolePage page = MolePage.lobby;
+  MolePage lobbyPage = MolePage.lobby;
   dc.Chess chess = dc.Chess();
   int lastUpdate = 0;
   List<MoleEvent> events = [];
@@ -83,6 +81,7 @@ class MoleModel extends ZugModel {
       MoleServMsg.events : handleEvents,
       MoleServMsg.confirmMoveVote : handleVoteMoveConfirmation,
       MoleServMsg.confirmMoveVoteX : handleVoteMoveXConfirmation,
+      MoleServMsg.rematching : handleRematching
     });
     loadChessgroundPieceSets();
     loadOptions([
@@ -101,13 +100,34 @@ class MoleModel extends ZugModel {
     //initFire().then((value) {  //_connect(); } );
   }
 
-  gotoMolePage(MolePage p) {
-    if (page != p) {
-      page = p;
-      trackPlayer.stop();
-      goToPage(page.zugPage);
+  switchLobbyPage(MolePage p) {
+    if (lobbyPage != p) {
+      lobbyPage = p;
+      playAudio(AssetSource("audio/tracks/${lobbyPage.track}.mp3"));
       notifyListeners();
     }
+  }
+
+  @override
+  void gotoPage(p) {
+      final pp = currentPage.name;
+      super.gotoPage(p);
+      if (pp != currentPage.name) {
+        print("Playing: $currentPage");
+        switch(currentPage) {
+          case PageType.main:
+            playGameTrack(getCurrentGame());
+          case PageType.lobby:
+            playAudio(AssetSource("audio/tracks/lobby.mp3"));
+          case PageType.options:
+            playAudio(AssetSource("audio/tracks/fugue.mp3"));
+          case PageType.splash:
+            playAudio(AssetSource("audio/tracks/splash.mp3"));
+          case PageType.none:
+            trackPlayer.stop();
+        }
+
+      }
   }
 
   MoleGame getGame(dynamic data) => getOrCreateArea(data) as MoleGame;
@@ -127,7 +147,7 @@ class MoleModel extends ZugModel {
 
   @override
   Area createArea(dynamic data) {
-    return MoleGame(data);
+    return MoleGame(data,onNewPhase: onNewPhase);
   }
 
   @override
@@ -156,6 +176,12 @@ class MoleModel extends ZugModel {
     super.handleVersion(data);
     ZugUtils.getIP().then((address) => send(ClientMsg.ip,data: {fieldAddress : address}));
     //send(ClientMsg.ip,data: {fieldAddress : Random().nextInt(255).toString()});
+  }
+
+  @override
+  bool handleErrorMsg(data) {
+    print(data);
+    return super.handleErrorMsg(data);
   }
 
   void handleIP(data) {
@@ -225,6 +251,11 @@ class MoleModel extends ZugModel {
     }
   }
 
+  void handleRematching(data) { //print("Rematching: $data");
+    Area game = getOrCreateArea(data);
+    game.occupantMap[UniqueName.fromData(data[fieldUser])]["rematching"] = data["rematching"];
+  }
+
   void addNewMoveVote(MoleGame game, String moveStr, bool player) {
     MoveVote vote = MoveVote(moveStr, player);
     game.recentVotes.add(vote);
@@ -240,7 +271,7 @@ class MoleModel extends ZugModel {
 
   void handleTop(data) { //print("Top: " + data.toString());
     topPlayers = data;
-    if (awaiting(MoleServMsg.top)) gotoMolePage(MolePage.top);
+    if (awaiting(MoleServMsg.top)) switchLobbyPage(MolePage.top);
   }
 
   void handleFinger(data) {
@@ -257,7 +288,7 @@ class MoleModel extends ZugModel {
 
   void handlePlayerHistory(data) {
     playerHistory = data;
-    if (awaiting(MoleServMsg.history)) gotoMolePage(MolePage.history);
+    if (awaiting(MoleServMsg.history)) switchLobbyPage(MolePage.history);
   }
 
   void getEvents() {
@@ -269,7 +300,7 @@ class MoleModel extends ZugModel {
     for (dynamic eventData in data) {
       events.add(MoleEvent.fromJson(eventData));
     }
-    if (awaiting(MoleServMsg.events)) gotoMolePage(MolePage.events);
+    if (awaiting(MoleServMsg.events)) switchLobbyPage(MolePage.events);
   }
 
   void handleVotelist(data) { //print("Votes: $data");
@@ -341,15 +372,15 @@ class MoleModel extends ZugModel {
     }
   }
 
-  @override
-  bool handleNewPhase(data) { //print("New Phase: $data");
-    if (data["phase"] == "POSTGAME") {
-      addAreaMsg(
-          "Game closing in ${data["timeRemaining"]} seconds",
-          data[fieldAreaID]
-      );
+  void onNewPhase(MoleGame game) { //print("New Phase: ${game.phase}");
+    if (game.phase == MolePhase.postgame) {
+      addAreaMsg("Game closing in ${game.phaseTimeRemaining} seconds", game.id);
     }
-    return super.handleNewPhase(data);
+    if (game == getCurrentGame()) playGameTrack(game);
+  }
+
+  void playGameTrack(MoleGame game) {
+    playAudio(AssetSource("audio/tracks/${game.getGameTrack()}.mp3"));
   }
 
   @override
@@ -462,9 +493,7 @@ class MoleModel extends ZugModel {
     try {
       final RenderRepaintBoundary boundary =
       key.currentContext!.findRenderObject() as RenderRepaintBoundary;
-
       //if (!boundary.isRepainted) { await Future.delayed(const Duration(milliseconds: 100)); }
-
       final ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
       return image;
     } catch (e) {

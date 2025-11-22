@@ -25,6 +25,7 @@ class MoleLobbyPage extends LobbyPage {
     super.zugChat,
     super.commandAreaWidth = 255,
     super.commandAreaHeight = 128,
+    super.useSelectedWidget = false,
     super.key});
 
   @override
@@ -34,7 +35,7 @@ class MoleLobbyPage extends LobbyPage {
   List<CommandButtonData> getExtraCmdButtons(BuildContext context) {
     MoleModel moleModel = model as MoleModel;
     List<CommandButtonData> extras = super.getExtraCmdButtons(context);
-    extras.add(CommandButtonData("Help",Colors.blue,Icons.help,() => moleModel.gotoMolePage(MolePage.help)));
+    extras.add(CommandButtonData("Help",Colors.blue,Icons.help,() => moleModel.switchLobbyPage(MolePage.help)));
     extras.add(CommandButtonData("Discord",Colors.purple,Icons.discord,gotoDiscord));
     extras.add(CommandButtonData("Top",Colors.cyan,Icons.star,() => moleModel.getTop(10)));
     extras.add(CommandButtonData("History",Colors.brown,Icons.hourglass_bottom,() => moleModel.getPlayerHistory(moleModel.userName)));
@@ -42,8 +43,12 @@ class MoleLobbyPage extends LobbyPage {
     return extras;
   }
 
+  //TODO: make collapsable
   @override
-  Widget selectorWidget(BuildContext context, {required Function(String title) onSelected}) {
+  Widget selectorWidget(BuildContext context, {required Function(String title) onSelected}) { //print("Titles: ${ model.areas.keys}");
+    for (String key in model.areas.keys) {
+      //MoleGame game = model.areas[key]! as MoleGame; print("$key: ${game.status} , ${game.gameState} , ${game.phase}");
+    }
     Map<MoleGameStatus,List<String>> statusMap = {};
     for (MoleGameStatus status in MoleGameStatus.values) {
       statusMap[status] = model.areas.keys.where((k) => (model.areas[k]! as MoleGame).status == status).toList();
@@ -66,11 +71,11 @@ class MoleLobbyPage extends LobbyPage {
     return Expanded(child: ListView(scrollDirection: Axis.vertical,
         children: List.generate(titles.length, (i) {
           String title = titles.elementAt(i);
-          return InkWell(
+          return InkWell( //only happens if you don't click stuff within the gameItem
               onTap: () => model.currentArea == model.areas[title] ? onSelected(noGameTitle) : onSelected(title),
               onDoubleTap: () {
                 onSelected(title);
-                model.goToPage(PageType.main);
+                model.gotoPage(PageType.main);
               },
               child: getGameItem(title,model.areas[title] as MoleGame))
           ;
@@ -88,11 +93,18 @@ class MoleLobbyPage extends LobbyPage {
         child: Row(children: [
           IconButton(
             onPressed: () {
+              model.joinArea(title);
+            }, //icon: const Icon(Icons.copy),
+            icon: const Icon(Icons.login), //Text("Link", style: TextStyle(color: Colors.blueGrey)),
+          ),
+          /* //TODO: get this working again
+          IconButton(
+            onPressed: () {
               MoleModel moleClient = model as MoleModel;
               moleClient.copyGameLink(moleClient.getCurrentGame());
             }, //icon: const Icon(Icons.copy),
             icon: const Icon(Icons.link), //Text("Link", style: TextStyle(color: Colors.blueGrey)),
-          ),
+          ),*/
           Text("$title : "),
           Row(children: List.generate(nameList.length, (i) {
             final uName = nameList.elementAt(i);
@@ -104,15 +116,12 @@ class MoleLobbyPage extends LobbyPage {
           })),
           if (model.currentArea == model.areas[title]) IconButton(
             onPressed: () {
-              model.goToPage(PageType.options);
+              model.gotoPage(PageType.options);
             }, //icon: const Icon(Icons.copy),
             icon: const Icon(Icons.settings), //Text("Link", style: TextStyle(color: Colors.blueGrey)),
           ),
     ])));
   }
-
-  @override
-  Widget selectedArea(BuildContext context, {Color? bkgCol, Color? txtCol, Iterable<dynamic>? occupants}) => SizedBox.shrink();
 
   void gotoDiscord() {
     if (kIsWeb) {

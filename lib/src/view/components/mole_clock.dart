@@ -70,8 +70,8 @@ class _ChessClockState extends State<ChessClock> {
         if (mounted) {
           MoleGame g = widget.client.getCurrentGame();
           setState(() {
-            currentTime = g.phaseTimeRemaining() / 1000;
-            progress =  g.phaseProgress();
+            currentTime = g.phaseTimeRemaining / 1000;
+            progress =  g.phaseProgress;
             side = g.sideToMove();
           });
         }

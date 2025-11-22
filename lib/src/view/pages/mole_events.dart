@@ -12,7 +12,7 @@ class MoleEventWidget extends StatelessWidget {
     return Column(
       children: [
         SizedBox(height: 48, child: ElevatedButton(
-            onPressed: () => model.gotoMolePage(MolePage.lobby),
+            onPressed: () => model.switchLobbyPage(MolePage.lobby),
             child: Row(children: [
               Icon(Icons.keyboard_return),Text(" Back to Lobby")]
             ))),

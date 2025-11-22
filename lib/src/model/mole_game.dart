@@ -2,7 +2,6 @@ import 'dart:math';
 import 'dart:ui' as ui;
 import 'package:chessground/chessground.dart' as cg;
 import 'package:flutter/cupertino.dart';
-import 'package:mole_app/src/view/components/result_animation.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_area.dart';
 import 'package:zugclient/zug_user.dart';
@@ -29,9 +28,10 @@ enum MolePhase {
 }
 
 enum MoleGameState { pregame, playing, win, lose, draw, finished; }
+enum GameResult { win, loss, draw }
 
 class MoleGame extends Area {
-
+  Function(MoleGame) onNewPhase;
   String fen = initialFen;
   List<dynamic> moves = [];
   List<dynamic> chat = [];
@@ -62,7 +62,7 @@ class MoleGame extends Area {
     PlayerColor.white => ZugUtils.getAssetImage("images/mole_sprite_white.gif"),
   };
 
-  MoleGame(super.data);
+  MoleGame(super.data, {required this.onNewPhase});
 
   void setResult(dynamic data) {
     winCol = colorMap[data[MoleFields.winner]];
@@ -71,6 +71,18 @@ class MoleGame extends Area {
     if (result == "lose") gameState = MoleGameState.lose;
     if (result == "draw") gameState = MoleGameState.draw;
   }
+
+  String getResultString() {
+    return switch(gameState) {
+      MoleGameState.pregame => "Starting",
+      MoleGameState.playing => "Playing",
+      MoleGameState.win || MoleGameState.lose => "${cap(winCol?.name ?? "Nobody")} Wins",
+      MoleGameState.draw => "Draw",
+      MoleGameState.finished => "${cap(winCol?.name ?? "Nobody")} Won",
+    };
+  }
+
+  String cap(String str) => "${str.substring(0,1).toUpperCase()}${str.length > 1 ? str.substring(1) : ''}";
 
   SideToMove sideToMove() {
     return fen.split(" ")[1] == "w" ? SideToMove.white : SideToMove.black;
@@ -93,12 +105,12 @@ class MoleGame extends Area {
   String getGameTrack() {
     int i = Random().nextInt(4) + 1;
     return switch(gameState) {
-      MoleGameState.pregame => "mole_intro2",
-      MoleGameState.playing => "mole_intro2",
-      MoleGameState.win => "mole_victory${i.toString()}",
-      MoleGameState.lose => "mole_defeat",
-      MoleGameState.draw => "mole_intro2",
-      MoleGameState.finished => "mole_intro2",
+      MoleGameState.pregame => "clue", //TODO: specialized tracks
+      MoleGameState.playing => "lobby",
+      MoleGameState.win => "victory${i.toString()}",
+      MoleGameState.lose => "defeat",
+      MoleGameState.draw => "credits",
+      MoleGameState.finished => "rap",
     };
   }
 
@@ -117,6 +129,13 @@ class MoleGame extends Area {
       }
     }
     return 0;
+  }
+
+  @override
+  void setPhase(String p) { //print("$id: Setting Phase from $phase to $p");
+    final prevPhase = phase.name;
+    super.setPhase(p);
+    if (phase.name != prevPhase) onNewPhase(this);
   }
 
   @override

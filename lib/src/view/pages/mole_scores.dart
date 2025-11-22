@@ -30,7 +30,6 @@ class _MoleScorePageState extends State<MoleScorePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       for (var i in scoreVars.keys) { scoreVars[i] = getScoreVars(); }
       setState(() { });
-      widget.model.playAudio(AssetSource("audio/tracks/fugue.mp3")); //mole_score.mp3"));
     });
   }
 
@@ -52,7 +51,7 @@ class _MoleScorePageState extends State<MoleScorePage> {
   Widget build(BuildContext context) {
     if (widget.model.topPlayers.isEmpty) {
       return Center(child: ElevatedButton(
-          onPressed: () => widget.model.gotoMolePage(MolePage.lobby),
+          onPressed: () => widget.model.switchLobbyPage(MolePage.lobby),
           child: Text("Scores not found")));
     }
     width = MediaQuery.of(context).size.width;
@@ -104,7 +103,7 @@ class _MoleScorePageState extends State<MoleScorePage> {
             ))
           ],
         )),
-      onTap: () => widget.model.gotoMolePage(MolePage.lobby),
+      onTap: () => widget.model.switchLobbyPage(MolePage.lobby),
     );
   }
 
