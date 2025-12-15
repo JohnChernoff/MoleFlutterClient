@@ -154,10 +154,10 @@ class MoleModel extends ZugModel {
   Future<bool> loggedIn(data) async {
     if (autoJoinTitle == null) {
       int i = Random().nextInt(2) + 1;
-      ZugDialogs.showClickableDialog(MusicStackDialog(this,"mole_intro1",
+      ZugDialogs.showClickableDialog(MusicStackDialog(this,"audio/tracks/splash",
           [
-            Image(image: ZugUtils.getAssetImage("images/mole_dance_bkg${i.toString()}.gif")),
-            Image(image: ZugUtils.getAssetImage("images/mole_dance3.gif")),
+            RelativeSizedWidget(Image(image: ZugUtils.getAssetImage("images/mole_dance_bkg${i.toString()}.gif")),1,1),
+            RelativeSizedWidget(Image(image: ZugUtils.getAssetImage("images/mole_dance3.gif")),.5,.5),
           ]
       ));
     }

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:zug_utils/zug_utils.dart';
 import 'package:zugclient/zug_fields.dart';
 import 'package:zugclient/zug_user.dart';
-import '../../model/mole_model.dart';
 import '../../model/mole_fields.dart';
 import 'package:mole_app/src/model/mole_game.dart';
 
@@ -189,69 +188,68 @@ class MoleDanceState extends State<MoleDance> {
   @override
   Widget build(BuildContext context) {
 
-    final double screenWidth = MediaQuery.of(context).size.width;
-    final double screenHeight = ZugUtils.getActualScreenHeight(context);
+    return LayoutBuilder(builder: (BuildContext ctx, BoxConstraints bc) {
+      double size = widget.size ?? min(128,bc.maxHeight);
+      double widgetWidth = size;
+      double widgetHeight = size;
 
-    double size = widget.size ?? min(screenWidth,screenHeight);
-    double widgetWidth = size;
-    double widgetHeight = size;
+      if (widget.widthPercent != null && widget.heightPercent != null) {
+        widgetWidth = bc.maxWidth * widget.widthPercent!;
+        widgetHeight = bc.maxHeight * widget.heightPercent!;
+      }
 
-    if (widget.widthPercent != null && widget.heightPercent != null) {
-      widgetWidth = screenWidth * widget.widthPercent!;
-      widgetHeight = screenHeight * widget.heightPercent!;
-    }
+      Point center = Point(widgetWidth/2,widgetHeight/2);
+      Point screenLocation = center + location;
+      moleWidth = widgetWidth / 8;
+      moleHeight = widgetWidth / 4;
 
-    Point center = Point(widgetWidth/2,widgetHeight/2);
-    Point screenLocation = center + location;
-    moleWidth = widgetWidth / 8;
-    moleHeight = widgetWidth / 4;
-
-    if (initialFrame) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Future.delayed(const Duration(seconds: 1)).then((value) {
-          rndWalk(widgetWidth, widgetHeight, 36);
+      if (initialFrame) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Future.delayed(const Duration(seconds: 1)).then((value) {
+            rndWalk(widgetWidth, widgetHeight, 36);
+          });
         });
-      });
-      initialFrame = false;
-    }
+        initialFrame = false;
+      }
 
-    return Container(
-        decoration: BoxDecoration(
-          color: Colors.lightGreen,
-          image: DecorationImage(
-            image: ZugUtils.getAssetImage("images/moleboard.png"),
-            fit: BoxFit.fill,
-          ),
-        ),
-        width: widgetWidth,
-        height: widgetHeight,
-        child: Stack(//fit: StackFit.expand,
-            children: [
-          AnimatedPositioned(
-            left: screenLocation.x as double,
-            top: screenLocation.y as double,
-            onEnd: () => rndWalk(widgetWidth, widgetHeight, min(widgetWidth,widgetHeight)/4),
-            duration: Duration(milliseconds: widget.animationSpeed),
-            curve: Curves.decelerate,
-            child: AnimatedContainer(
-              curve: Curves.easeIn,
-              duration: Duration(milliseconds: (widget.animationSpeed/4).round()),
-              transform: matrix,
-              transformAlignment: Alignment.center,
-              width: moleWidth,
-              height: moleHeight,
-              child: widget.moleImg,
+      return Container(
+          decoration: BoxDecoration(
+            color: Colors.lightGreen,
+            image: DecorationImage(
+              image: ZugUtils.getAssetImage("images/moleboard.png"),
+              fit: BoxFit.fill,
             ),
           ),
-              Container(
+          width: widgetWidth,
+          height: widgetHeight,
+          child: Stack(//fit: StackFit.expand,
+              children: [
+                AnimatedPositioned(
+                  left: screenLocation.x as double,
+                  top: screenLocation.y as double,
+                  onEnd: () => rndWalk(widgetWidth, widgetHeight, min(widgetWidth,widgetHeight)/4),
+                  duration: Duration(milliseconds: widget.animationSpeed),
+                  curve: Curves.decelerate,
+                  child: AnimatedContainer(
+                    curve: Curves.easeIn,
+                    duration: Duration(milliseconds: (widget.animationSpeed/4).round()),
+                    transform: matrix,
+                    transformAlignment: Alignment.center,
+                    width: moleWidth,
+                    height: moleHeight,
+                    child: widget.moleImg,
+                  ),
+                ),
+                Container(
                   //color: Colors.green,
-                  alignment: Alignment.bottomLeft,
-                  child: SizedBox(
-                      width: widgetWidth/2,
-                      height: widgetHeight/5,
-                      child: FittedBox(child: Text(widget.caption, style: const TextStyle(backgroundColor: Colors.white))))
-              ),
-        ]));
+                    alignment: Alignment.bottomLeft,
+                    child: SizedBox(
+                        width: widgetWidth/2,
+                        height: widgetHeight/5,
+                        child: FittedBox(child: Text(widget.caption, style: const TextStyle(backgroundColor: Colors.white))))
+                ),
+              ]));
+    });
   }
 
   void rndWalk(double width, double height, double speed) {
