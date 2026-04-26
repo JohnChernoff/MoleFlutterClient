@@ -5,7 +5,7 @@ import 'package:flutter_chess_board/flutter_chess_board.dart';
 import 'package:zug_utils/zug_utils.dart';
 
 enum MoleServMsg {announce,top,history,info,users,moveUpdate,ready,side,confirmMoveVote,confirmMoveVoteX,voteList,moleBomb,veto,move,
-  rampage,defection,role, startGame,result,version,finger,pgn,events,rematch,rematching}
+  rampage,defection,role,startGame,result,version,finger,pgn,events,rematch,rematching,secrets}
 enum MoleClientMsg {pushToken,notify,top,history,cmd,role,status,veto,draw,resign,kickoff,voteoff,move,abort,inspect,bomb,
   version,finger,pgn,moveHistory,events,rematch,rematching}
 enum PlayerAction {accuse,kick,ban,finger,whisper,cancel}
@@ -47,6 +47,8 @@ class MoleFields {
   };
 
   static const String player = "player",
+      role = "role",
+      secret = "secret",
       move = "move",
       votes = "votes",
       time = "time",

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:math';
+import 'dart:math' as math;
 import 'package:audioplayers/audioplayers.dart';
 import 'package:chess/chess.dart' as dc;
 import 'package:chessground/chessground.dart' as cg;
@@ -7,6 +7,7 @@ import 'package:fast_immutable_collections/fast_immutable_collections.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_chess_board/flutter_chess_board.dart' as cb;
 import 'package:mole_app/src/view/components/mole_dialogs.dart';
 import 'package:rxdart/rxdart.dart';
@@ -22,10 +23,12 @@ import 'package:zugclient/zug_user.dart';
 import 'package:mole_app/src/model/mole_game.dart';
 import '../../firebase_options.dart';
 import 'package:flutter/services.dart';
+import '../view/components/role_widget.dart';
 import 'mole_fields.dart';
 import 'mole_event.dart';
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
+import 'dart:developer';
 
 //TODO: ZugOptions, Lobby dimensions
 
@@ -81,7 +84,9 @@ class MoleModel extends ZugModel {
       MoleServMsg.events : handleEvents,
       MoleServMsg.confirmMoveVote : handleVoteMoveConfirmation,
       MoleServMsg.confirmMoveVoteX : handleVoteMoveXConfirmation,
-      MoleServMsg.rematching : handleRematching
+      MoleServMsg.rematching : handleRematching,
+      //MoleServMsg.secrets : handleSecret,
+      ServMsg.errServMsg : handleError,
     });
     loadChessgroundPieceSets();
     loadOptions([
@@ -100,6 +105,10 @@ class MoleModel extends ZugModel {
     //initFire().then((value) {  //_connect(); } );
   }
 
+  handleError(dynamic data) {
+    log("Error: $data");
+  }
+
   switchLobbyPage(MolePage p) {
     if (lobbyPage != p) {
       lobbyPage = p;
@@ -109,11 +118,11 @@ class MoleModel extends ZugModel {
   }
 
   @override
-  void gotoPage(p) {
+  void gotoPage(PageType p) {
       final pp = currentPage.name;
       super.gotoPage(p);
       if (pp != currentPage.name) {
-        print("Playing: $currentPage");
+        log("Playing: $currentPage");
         switch(currentPage) {
           case PageType.main:
             playGameTrack(getCurrentGame());
@@ -153,7 +162,7 @@ class MoleModel extends ZugModel {
   @override
   Future<bool> loggedIn(data) async {
     if (autoJoinTitle == null) {
-      int i = Random().nextInt(2) + 1;
+      int i = math.Random().nextInt(2) + 1;
       ZugDialogs.showClickableDialog(MusicStackDialog(this,"audio/tracks/splash",
           [
             RelativeSizedWidget(Image(image: ZugUtils.getAssetImage("images/mole_dance_bkg${i.toString()}.gif")),1,1),
@@ -180,8 +189,8 @@ class MoleModel extends ZugModel {
 
   @override
   bool handleErrorMsg(data) {
-    print(data);
-    return super.handleErrorMsg(data);
+    log("Error $data");
+    return true; //super.handleErrorMsg(data);
   }
 
   void handleIP(data) {
@@ -350,7 +359,7 @@ class MoleModel extends ZugModel {
     if (game is MoleGame && game == currentArea) {
       game.setResult(data);
       if (game.result != null && game.boardImg == null) {
-        print ("Capturing game image for result: ${game.result}");
+        log("Capturing game image for result: ${game.result}");
         game.boardImg = await captureWidget(boardCaptureKey);
       }
       //ZugDialogs.showClickableDialog(MusicStackDialog(this,game.getGameTrack(),[MoleDance("Game Over: $winnerString Wins!",moleImg)]));
@@ -361,14 +370,24 @@ class MoleModel extends ZugModel {
     return prefs?.getBool("streamer_mode") ?? defaultStreamerMode;
   }
 
+  void handleSecret(data) {
+    ZugDialogs.popup("Secrets: $data");
+  }
+
   void handleRole(data) {
-    String role = data[fieldMsg]; //if (game is MoleGame && game == currentArea) {}
+    String role = data[MoleFields.role]; //if (game is MoleGame && game == currentArea) {}
     if (isStreamerMode()) {
       addAreaMsg("You are the $role",data[fieldAreaID],hidden: true);
     }
     else {
       playClip("role_${role.toLowerCase()}");
-      ZugDialogs.popup("You are the $role",imgFile: "${role.toLowerCase()}.png");
+      //ZugDialogs.popup("You are the $role, secrets: ${data[MoleFields.secret]}",imgFile: "${role.toLowerCase()}.png");
+      final roleData = RoleData.fromJson({
+        'role': data[MoleFields.role],
+        ...data[MoleFields.secret],  // spread the secrets map in
+      });
+      //ZugDialogs.showWidget(MoleRoleCard(roleData: roleData));
+      ZugDialogs.showClickableDialog(MoleRoleCard(roleData: roleData));
     }
   }
 
@@ -497,7 +516,7 @@ class MoleModel extends ZugModel {
       final ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
       return image;
     } catch (e) {
-      print('Error capturing widget: $e');
+      log('Error capturing widget: $e');
       return null;
     }
   }
