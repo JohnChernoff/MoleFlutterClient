@@ -48,19 +48,23 @@ class MoleFields {
 
   static const String player = "player",
       role = "role",
-      secret = "secret",
+      secrets = "secrets",
       move = "move",
       votes = "votes",
       time = "time",
       turn = "turn",
+      piece = "piece",
+      square = "square",
       promotion = "promotion",
       confirm = "confirm",
       side = "game_col",
       ready = "ready",
+      points = "points",
       winner = "winner",
       result = "result",
       unbalanced = "unbalanced",
-      insufficient = "insufficient";
+      insufficient = "insufficient",
+      bounty = "bounty";
 
   static const String action = "action";
 }

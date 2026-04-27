@@ -2,29 +2,34 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../../model/mole_fields.dart';
+
 enum MoleRole { mole, player, inspector }
 
-class RoleData {
+class SecretData {
   final MoleRole role;
+  final int points;
   final String? secretPiece;   // FEN symbol e.g. 'q', 'R'
   final String? secretSquare;  // e.g. 'e4'
   final BountyData? bounty;
 
-  const RoleData({
+  const SecretData({
     required this.role,
+    required this.points,
     this.secretPiece,
     this.secretSquare,
     this.bounty,
   });
 
-  factory RoleData.fromJson(Map<String, dynamic> data) {
-    final bountyJson = data['bounty'] as Map<String, dynamic>?;
-    return RoleData(
+  factory SecretData.fromJson(Map<String, dynamic> data) {
+    final bountyJson = data[MoleFields.bounty] as Map<String, dynamic>?;
+    return SecretData(
       role: MoleRole.values.firstWhere(
-            (r) => r.name.toUpperCase() == (data['role'] as String).toUpperCase(),
+            (r) => r.name.toUpperCase() == (data[MoleFields.role] as String).toUpperCase(),
       ),
-      secretPiece: data['piece'] as String?,
-      secretSquare: data['square'] as String?,
+      points: data[MoleFields.points] as int,
+      secretPiece: data[MoleFields.piece] as String?,
+      secretSquare: data[MoleFields.square] as String?,
       bounty: bountyJson != null ? BountyData.fromJson(bountyJson) : null,
     );
   }
@@ -37,15 +42,15 @@ class BountyData {
   const BountyData({required this.piece, required this.square});
 
   factory BountyData.fromJson(Map<String, dynamic> data) => BountyData(
-    piece: data['piece'] as String,
-    square: data['square'] as String,
+    piece: data[MoleFields.piece] as String,
+    square: data[MoleFields.square] as String,
   );
 }
 
-class MoleRoleCard extends StatelessWidget {
-  final RoleData roleData;
+class SecretCard extends StatelessWidget {
+  final SecretData roleData;
 
-  const MoleRoleCard({super.key, required this.roleData});
+  const SecretCard({super.key, required this.roleData});
 
   // --- Role theming ---
   _RoleTheme get _theme => switch (roleData.role) {
@@ -100,8 +105,8 @@ class MoleRoleCard extends StatelessWidget {
     final t = _theme;
     return LayoutBuilder(builder: (ctx,bc) =>
         SizedBox(
-            width: max(bc.maxWidth/3,320),
-            height: max(bc.maxHeight/3,320),
+            width: max(bc.maxWidth/3,480),
+            height: max(bc.maxHeight/3,480),
             child: Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -114,11 +119,16 @@ class MoleRoleCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
+            Text("Points: ${roleData.points}",
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.white, //Colors.grey.shade600,
+                height: 2,
+            )),
             _RoleBadge(theme: t),
             const SizedBox(height: 12),
             Text(
               t.description,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Colors.white, //Colors.grey.shade600,
                 height: 1.5,
               ),

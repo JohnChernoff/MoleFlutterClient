@@ -70,7 +70,7 @@ class MoleModel extends ZugModel {
     addFunctions({
       ServMsg.ip : handleIP,
       MoleServMsg.move : handleMove,
-      MoleServMsg.role : handleRole,
+      MoleServMsg.secrets : handleSecrets,
       MoleServMsg.defection : handleDefection,
       MoleServMsg.rampage : handleRampage,
       MoleServMsg.moleBomb : handleMolebomb,
@@ -374,20 +374,22 @@ class MoleModel extends ZugModel {
     ZugDialogs.popup("Secrets: $data");
   }
 
-  void handleRole(data) {
+  void handleSecrets(data) {
     String role = data[MoleFields.role]; //if (game is MoleGame && game == currentArea) {}
     if (isStreamerMode()) {
       addAreaMsg("You are the $role",data[fieldAreaID],hidden: true);
+      addAreaMsg("You have ${data[MoleFields.points]} points",data[fieldAreaID],hidden: true);
+      addAreaMsg("Secret move: ${data[MoleFields.piece]} -> ${data[MoleFields.square]}",data[fieldAreaID],hidden: true);
+      final bountyData = data[MoleFields.bounty];
+      if (bountyData != null) {
+        final bountyPiece = bountyData[MoleFields.piece];
+        final bountySquare = bountyData[MoleFields.square];
+        addAreaMsg("Secret Bounty: $bountyPiece on $bountySquare", data[fieldAreaID],hidden: true);
+      }
     }
     else {
       playClip("role_${role.toLowerCase()}");
-      //ZugDialogs.popup("You are the $role, secrets: ${data[MoleFields.secret]}",imgFile: "${role.toLowerCase()}.png");
-      final roleData = RoleData.fromJson({
-        'role': data[MoleFields.role],
-        ...data[MoleFields.secret],  // spread the secrets map in
-      });
-      //ZugDialogs.showWidget(MoleRoleCard(roleData: roleData));
-      ZugDialogs.showClickableDialog(MoleRoleCard(roleData: roleData));
+      ZugDialogs.showClickableDialog(SecretCard(roleData: SecretData.fromJson(data)));
     }
   }
 
