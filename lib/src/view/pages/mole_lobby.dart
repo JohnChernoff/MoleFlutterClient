@@ -26,7 +26,14 @@ class MoleLobbyPage extends LobbyPage {
     super.commandAreaWidth = 255,
     super.commandAreaHeight = 128,
     super.useSelectedWidget = false,
+    super.startButt = false,
+    super.partButt = false,
+    super.joinButt = false,
     super.key});
+
+  bool inGame(MoleGame game) => game.containsOccupant(model.userName);
+  bool isCreator(MoleGame game) => model.userName == game.creator;
+  bool isSelected(MoleGame game) => model.currentArea == game;
 
   @override
   bool get seekButt => false;
@@ -37,9 +44,9 @@ class MoleLobbyPage extends LobbyPage {
     List<CommandButtonData> extras = super.getExtraCmdButtons(context);
     extras.add(CommandButtonData("Help",Colors.blue,Icons.help,() => moleModel.switchLobbyPage(MolePage.help)));
     extras.add(CommandButtonData("Discord",Colors.purple,Icons.discord,gotoDiscord));
-    extras.add(CommandButtonData("Top",Colors.cyan,Icons.star,() => moleModel.getTop(10)));
-    extras.add(CommandButtonData("History",Colors.brown,Icons.hourglass_bottom,() => moleModel.getPlayerHistory(moleModel.userName)));
-    extras.add(CommandButtonData("Events",Colors.green,Icons.event,() => moleModel.getEvents()));
+    //extras.add(CommandButtonData("Top",Colors.cyan,Icons.star,() => moleModel.getTop(10)));
+    //extras.add(CommandButtonData("History",Colors.brown,Icons.hourglass_bottom,() => moleModel.getPlayerHistory(moleModel.userName)));
+    //extras.add(CommandButtonData("Events",Colors.green,Icons.event,() => moleModel.getEvents()));
     return extras;
   }
 
@@ -77,50 +84,67 @@ class MoleLobbyPage extends LobbyPage {
                 onSelected(title);
                 model.gotoPage(PageType.main);
               },
-              child: getGameItem(title,model.areas[title] as MoleGame))
+              child: getGameItem(title,model.areas[title] as MoleGame, onSelected))
           ;
         })
     ));
   }
 
-  Widget getGameItem(String title, MoleGame game) { //print("Game Data: ${game.upData}"); print("$title Phase: ${game.status}");
+  Widget getGameItem(String title, MoleGame game, Function(String title) onSelected) {
     List<UniqueName> nameList = game.occupantMap.keys.toList();
     nameList.sort((a,b) => game.occupantMap[a]['game_col'] - game.occupantMap[b]['game_col']);
+
     return SingleChildScrollView(scrollDirection: Axis.horizontal, child: Container(
-        decoration: model.currentArea == game ? BoxDecoration(
+      decoration: isSelected(game) ? BoxDecoration(
           border: Border.all(color: Colors.white, width: 2)
-        ) : null,
-        child: Row(children: [
-          IconButton(
-            onPressed: () {
-              model.joinArea(title);
-            }, //icon: const Icon(Icons.copy),
-            icon: const Icon(Icons.login), //Text("Link", style: TextStyle(color: Colors.blueGrey)),
-          ),
-          /* //TODO: get this working again
-          IconButton(
-            onPressed: () {
-              MoleModel moleClient = model as MoleModel;
-              moleClient.copyGameLink(moleClient.getCurrentGame());
-            }, //icon: const Icon(Icons.copy),
-            icon: const Icon(Icons.link), //Text("Link", style: TextStyle(color: Colors.blueGrey)),
-          ),*/
-          Text("$title : "),
-          Row(children: List.generate(nameList.length, (i) {
-            final uName = nameList.elementAt(i);
-            final data = game.occupantMap[uName]; //print("User data: $data");
-            Color? color = colorMap[data['game_col']];
-            return uName.toWidget(color: Colors.black, bkgColor: color == Colors.white
-                ? Colors.brown
-                : color == Colors.black ? Colors.cyanAccent : Colors.grey);
-          })),
-          if (model.currentArea == model.areas[title]) IconButton(
-            onPressed: () {
-              model.gotoPage(PageType.options);
-            }, //icon: const Icon(Icons.copy),
-            icon: const Icon(Icons.settings), //Text("Link", style: TextStyle(color: Colors.blueGrey)),
-          ),
-    ])));
+      ) : null,
+      child: Row(children: [
+        Text("$title : "),
+        Row(children: List.generate(nameList.length, (i) {
+          final uName = nameList.elementAt(i);
+          final data = game.occupantMap[uName];
+          Color? color = colorMap[data['game_col']];
+          return uName.toWidget(color: Colors.black, bkgColor: color == Colors.white
+              ? Colors.brown
+              : color == Colors.black ? Colors.cyanAccent : Colors.grey);
+        })),
+        PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert),
+          onOpened: () => onSelected(title),
+          onSelected: (value) {
+            switch (value) {
+              case 'join':
+                model.joinArea(title);
+                break;
+              case 'settings':
+                model.gotoPage(PageType.options);
+                break;
+              case 'leave':
+                getPartButton().callback();
+                break;
+              case 'link':
+                (model as MoleModel).copyGameLink((model as MoleModel).getCurrentGame());
+                break;
+              case 'start':
+                getStartButton().callback();
+                break;
+            }
+          },
+          itemBuilder: (context) => [
+            if (!inGame(game)) const PopupMenuItem(
+                value: 'join',  child: ListTile(leading: Icon(Icons.login),    title: Text('Join'))),
+            const PopupMenuItem(value: 'settings', child: ListTile(leading: Icon(Icons.settings), title: Text('Settings'))),
+            if (inGame(game)) const PopupMenuItem(value: 'leave', child: ListTile(leading: Icon(Icons.backspace_outlined), title: Text('Leave'))),
+            const PopupMenuItem(value: 'link',  child: ListTile(leading: Icon(Icons.link),     title: Text('Copy Link'))),
+            if (isCreator(game)) const PopupMenuItem(value: 'start', child: ListTile(leading: Icon(Icons.start),    title: Text('Start'))),
+          ],
+        ),
+      ]),
+    ));
+  }
+
+  void selectGame(String title,Function(String title) onSelected) {
+    if (model.currentArea.id != title) onSelected;
   }
 
   void gotoDiscord() {
