@@ -375,21 +375,23 @@ class MoleModel extends ZugModel {
   }
 
   void handleSecrets(data) {
-    String role = data[MoleFields.role]; //if (game is MoleGame && game == currentArea) {}
-    if (isStreamerMode()) {
-      addAreaMsg("You are the $role",data[fieldAreaID],hidden: true);
-      addAreaMsg("You have ${data[MoleFields.points]} points",data[fieldAreaID],hidden: true);
-      addAreaMsg("Secret move: ${data[MoleFields.piece]} -> ${data[MoleFields.square]}",data[fieldAreaID],hidden: true);
-      final bountyData = data[MoleFields.bounty];
-      if (bountyData != null) {
-        final bountyPiece = bountyData[MoleFields.piece];
-        final bountySquare = bountyData[MoleFields.square];
-        addAreaMsg("Secret Bounty: $bountyPiece on $bountySquare", data[fieldAreaID],hidden: true);
+    if (data["changed"] == "all") {
+      String role = data[MoleFields.role]; //if (game is MoleGame && game == currentArea) {}
+      if (isStreamerMode()) {
+        addAreaMsg("You are the $role",data[fieldAreaID],hidden: true);
+        addAreaMsg("You have ${data[MoleFields.points]} points",data[fieldAreaID],hidden: true);
+        addAreaMsg("Secret move: ${data[MoleFields.piece]} -> ${data[MoleFields.square]}",data[fieldAreaID],hidden: true);
+        final bountyData = data[MoleFields.bounty];
+        if (bountyData != null) {
+          final bountyPiece = bountyData[MoleFields.piece];
+          final bountySquare = bountyData[MoleFields.square];
+          addAreaMsg("Secret Bounty: $bountyPiece on $bountySquare", data[fieldAreaID],hidden: true);
+        }
       }
-    }
-    else {
-      playClip("role_${role.toLowerCase()}");
-      ZugDialogs.showClickableDialog(SecretCard(roleData: SecretData.fromJson(data)));
+      else {
+        playClip("role_${role.toLowerCase()}");
+        ZugDialogs.showClickableDialog(SecretCard(roleData: SecretData.fromJson(data)));
+      }
     }
   }
 
