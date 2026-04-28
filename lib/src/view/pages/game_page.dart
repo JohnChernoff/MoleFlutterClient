@@ -10,8 +10,10 @@ import 'package:mole_app/src/view/components/compact_vote_list.dart';
 import 'package:mole_app/src/view/components/rematch_widget.dart';
 import 'package:zug_utils/zug_dialogs.dart';
 import 'package:zug_utils/zug_utils.dart';
+import 'package:zugclient/zug_app.dart';
 import 'package:zugclient/zug_chat.dart';
 import 'package:zugclient/zug_fields.dart';
+import 'package:zugclient/zug_nav.dart';
 import 'package:zugclient/zug_user.dart';
 import '../components/mole_menu.dart';
 import '../../model/mole_model.dart';
@@ -290,13 +292,19 @@ class CurrentGameState extends State<CurrentGameWidget> {
             color: Colors.black,
             width: width,
             height: height,
-            child: ListView(
+            child: Column(children: [
+            Expanded(child: SizedBox(child: ZugNavBar(
+              items: [
+                MoleApp.getDestination(PageType.lobby), MoleApp.getDestination(PageType.options)],
+                model: widget.client, orientation: Axis.vertical))),
+            SizedBox(height: 8),
+            Expanded(flex: 2, child: ListView(
               scrollDirection: landscape ? Axis.vertical : Axis.horizontal,
               controller: moveListController,
               children: rowList,
-            )
+            ))]
         )
-    );
+    ));
   }
 
   Widget getMoveBox(int ply) {

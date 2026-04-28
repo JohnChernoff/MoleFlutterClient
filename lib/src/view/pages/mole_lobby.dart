@@ -43,6 +43,7 @@ class MoleLobbyPage extends LobbyPage {
     MoleModel moleModel = model as MoleModel;
     List<CommandButtonData> extras = super.getExtraCmdButtons(context);
     extras.add(CommandButtonData("Help",Colors.blue,Icons.help,() => moleModel.switchLobbyPage(MolePage.help)));
+    extras.add(CommandButtonData("Settings",Colors.cyan,Icons.settings,() => moleModel.gotoPage(PageType.options)));
     extras.add(CommandButtonData("Discord",Colors.purple,Icons.discord,gotoDiscord));
     //extras.add(CommandButtonData("Top",Colors.cyan,Icons.star,() => moleModel.getTop(10)));
     //extras.add(CommandButtonData("History",Colors.brown,Icons.hourglass_bottom,() => moleModel.getPlayerHistory(moleModel.userName)));
@@ -62,6 +63,7 @@ class MoleLobbyPage extends LobbyPage {
     }
     return Expanded(child: Column(
       children: [
+        Center(child: Text("Welcome, ${model.userName?.name ?? "Unknown User"}!")),
         Center(child: Text("Click to select a game below (double click to go the board)")),
         Divider(),
         Text("Forming games"),

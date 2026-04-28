@@ -15,6 +15,7 @@ import 'package:logging/logging.dart';
 import 'package:zugclient/zug_chat.dart';
 import 'package:zugclient/zug_fields.dart';
 import 'package:zugclient/zug_model.dart';
+import 'package:zugclient/zug_nav.dart';
 import 'package:zugclient/zug_option.dart';
 
 //TODO: coordinates option, music/sound, help, option descriptions
@@ -40,6 +41,7 @@ class MoleApp extends ZugApp {
   static const double headerHeight = 36;
 
   MoleApp(super.client,super.appName,{
+    super.noNavBar = true,
     super.logLevel = Level.INFO,
     super.colorSeed = Colors.brown, //Colors.greenAccent,
     super.key
@@ -95,7 +97,13 @@ class MoleApp extends ZugApp {
 
   @override
   Widget createOptionsPage(ZugModel model) {
-    return MoleOptionsPage(model as MoleModel);
+    return Row(children: [
+      SizedBox(width: 48, child: ZugNavBar(
+          items: [
+            MoleApp.getDestination(PageType.main), MoleApp.getDestination(PageType.lobby)],
+          model: model, orientation: Axis.vertical)),
+      Expanded(child: MoleOptionsPage(model as MoleModel))
+    ]);
   }
 
   @override
@@ -110,7 +118,9 @@ class MoleApp extends ZugApp {
   }
 
   @override
-  AppBar createStatusBar(BuildContext context, ZugModel model, {Widget? txt, Color? color}) {
+  AppBar? createStatusBar(BuildContext context, ZugModel model, {Widget? txt, Color? color}) => null;
+
+  AppBar createStatusBarX(BuildContext context, ZugModel model, {Widget? txt, Color? color}) {
     String txt = model.isLoggedIn
         ? "${_getAppInfo(model as MoleModel)}, user: ${model.userName}, "
         "game: ${model.currentArea.id.isNotEmpty ? model.currentArea.id : 'none'}"
@@ -121,18 +131,27 @@ class MoleApp extends ZugApp {
         backgroundColor: model.currentPage == PageType.main ? Colors.black : Colors.black);
   }
 
-  @override
-  NavigationDestination getMainNavigationBarItem() {
-    return NavigationDestination(
+  static List<NavItem> navDestinations() => [
+    NavItem(page: PageType.main, destination: NavigationDestination(
       icon: ImageIcon(ZugUtils.getAssetImage("images/mole_pieces/mole_knight_white.png"), color: Colors.white),
       label: 'Game',
-    );
-  }
+    )),
+    NavItem(page: PageType.lobby, destination: NavigationDestination(
+      icon: Icon(Icons.local_bar, color: Colors.white),
+      label: 'Lobby',
+    )),
+    NavItem(page: PageType.options, destination: NavigationDestination(
+      icon: Icon(Icons.settings, color: Colors.white),
+      label: 'Settings',
+    )),
+  ];
+
+  static NavItem getDestination(PageType page) => navDestinations().where((n) => n.page == page).single;
 
 }
 
 class MoleHome extends ZugHome {
-  const MoleHome({super.key, required super.app});
+  const MoleHome({super.key, required super.app, super.noNavBar = true});
 
   @override
   Widget getNavBar(ZugModel model,
@@ -145,7 +164,7 @@ class MoleHome extends ZugHome {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 8,
           ),
         ],

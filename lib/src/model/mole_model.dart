@@ -105,8 +105,8 @@ class MoleModel extends ZugModel {
     //initFire().then((value) {  //_connect(); } );
   }
 
-  handleError(dynamic data) {
-    log("Error: $data");
+  handleError(dynamic data) { log("Error: $data");
+    handleGenericMsg(data, color: Colors.redAccent);
   }
 
   switchLobbyPage(MolePage p) {
